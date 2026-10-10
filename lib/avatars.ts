@@ -10,3 +10,10 @@ export const getAvatars = () => avatars;
 export const getAvatar = (id: string) => avatars.find((a) => a.id === id);
 export const assetUrl = (avatar: AvatarManifest, file: string) =>
   `${ASSET_BASE}/avatars/${avatar.id}/${file}`;
+
+/** Teaser cards shown on the home page until these avatars exist. */
+export const comingSoon = [
+  { name: "Mochi the Kitten", emoji: "🐱" },
+  { name: "Biscuit the Puppy", emoji: "🐶" },
+  { name: "Clover the Bunny", emoji: "🐰" },
+];

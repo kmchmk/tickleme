@@ -5,6 +5,8 @@ import { assetUrl } from "@/lib/avatars";
 import { getClip } from "@/lib/videoCache";
 import type { AvatarAction, AvatarManifest, Region } from "@/lib/types";
 
+type Ripple = { id: number; x: number; y: number; label?: string };
+
 /**
  * Seamless switching between an idle loop and short action clips.
  *
@@ -36,6 +38,17 @@ const regionPath = (region: Region | Region[]) =>
     .join("");
 
 
+/** Centre of a region in frame percent, used for hint dots. */
+const regionCenter = (region: Region | Region[]): [number, number] => {
+  const r = [region].flat()[0];
+  if (r.shape === "rect") return [r.x + r.w / 2, r.y + r.h / 2];
+  const n = r.points.length;
+  return [r.points.reduce((a, p) => a + p[0], 0) / n, r.points.reduce((a, p) => a + p[1], 0) / n];
+};
+
+/** "Kick (left leg)" -> "Kick" */
+const shortLabel = (label: string) => label.replace(/\s*\(.*\)\s*$/, "");
+
 const once = (el: HTMLVideoElement, event: string) =>
   new Promise<void>((resolve) => el.addEventListener(event, () => resolve(), { once: true }));
 
@@ -51,33 +64,43 @@ const prepVideo = (el: HTMLVideoElement | null) => {
 
 export default function AvatarPlayer({
   avatar,
+  showHints = false,
   debug = false,
+  onReady,
 }: {
   avatar: AvatarManifest;
+  showHints?: boolean;
   debug?: boolean;
+  onReady?: () => void;
 }) {
   const [urls, setUrls] = useState<Record<string, string> | null>(null);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<string[]>([]);
+  const [ripples, setRipples] = useState<Ripple[]>([]);
   const idleRef = useRef<HTMLVideoElement>(null);
   const clipRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const busy = useRef(false);
   const primed = useRef(false);
+  const rippleId = useRef(0);
 
   const note = useCallback(
     (msg: string) => debug && setLog((l) => [...l.slice(-5), msg]),
     [debug],
   );
 
-  // Download all clips up front.
+  // Load all clips up front (IndexedDB cache first, then network).
   useEffect(() => {
     let cancelled = false;
     const created: string[] = [];
     const files = [avatar.idle, ...avatar.actions.map((a) => a.video)];
+    let done = 0;
+    setProgress(0);
     Promise.all(
       files.map(async (f) => {
         const u = URL.createObjectURL(await getClip(assetUrl(avatar, f), avatar.version ?? 1));
         created.push(u);
+        if (!cancelled) setProgress(++done / files.length);
         return [f, u] as const;
       }),
     )
@@ -88,6 +111,10 @@ export default function AvatarPlayer({
       created.forEach(URL.revokeObjectURL);
     };
   }, [avatar]);
+
+  useEffect(() => {
+    if (urls) onReady?.();
+  }, [urls, onReady]);
 
   const raise = (top: HTMLVideoElement) => {
     for (const v of [idleRef.current, ...Object.values(clipRefs.current)]) {
@@ -147,93 +174,116 @@ export default function AvatarPlayer({
     [note],
   );
 
-  if (error) return <p>Failed to load clips: {error}</p>;
+  const onTap = (e: React.MouseEvent<SVGSVGElement>) => {
+    const box = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - box.left) / box.width) * 100;
+    const y = ((e.clientY - box.top) / box.height) * 100;
+    const id = (e.target as Element).closest("[data-action]")?.getAttribute("data-action");
+    const action = avatar.actions.find((a) => a.id === id);
+    const ripple = { id: ++rippleId.current, x, y, label: action && !busy.current ? shortLabel(action.label) : undefined };
+    setRipples((r) => [...r, ripple]);
+    setTimeout(() => setRipples((r) => r.filter((p) => p.id !== ripple.id)), 900);
+    if (action) void play(action);
+  };
 
   return (
-    <>
-      <div
-        style={{
-          position: "relative",
-          width: "min(100%, 480px)",
-          aspectRatio: String(avatar.aspectRatio),
-          background: avatar.poster
-            ? `#000 url(${assetUrl(avatar, avatar.poster)}) center / 100% 100%`
-            : "#000",
-          touchAction: "manipulation",
-          userSelect: "none",
-          WebkitUserSelect: "none",
-          WebkitTouchCallout: "none",
-        }}
-      >
-        {urls &&
-          avatar.actions.map((a) => (
-            <video
-              key={a.id}
-              ref={(el) => {
-                clipRefs.current[a.id] = el;
-                prepVideo(el);
-              }}
-              src={urls[a.video]}
-              muted
-              playsInline
-              preload="auto"
-              style={{ ...videoStyle, zIndex: 1 }}
-            />
-          ))}
-        {urls ? (
+    <div className="player">
+      {urls &&
+        avatar.actions.map((a) => (
           <video
+            key={a.id}
             ref={(el) => {
-              idleRef.current = el;
+              clipRefs.current[a.id] = el;
               prepVideo(el);
             }}
-            src={urls[avatar.idle]}
+            src={urls[a.video]}
             muted
-            loop
-            autoPlay
             playsInline
             preload="auto"
-            style={{ ...videoStyle, zIndex: 2 }}
+            className="player-video"
+            style={{ zIndex: 1 }}
           />
-        ) : (
-          <p style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
-            Loading…
-          </p>
-        )}
-        {urls && (
-          <svg
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 3 }}
-          >
-            {avatar.actions.map((a) => (
-              <path
-                key={a.id}
-                d={regionPath(a.region)}
-                onClick={() => play(a)}
-                fill={debug ? "rgba(255,0,100,0.25)" : "rgba(0,0,0,0)"}
-                stroke={debug ? "#f06" : "none"}
-                strokeWidth={0.4}
-                style={{ cursor: "pointer" }}
-              >
-                <title>{a.label}</title>
-              </path>
-            ))}
-          </svg>
-        )}
-      </div>
-      {debug && (
-        <pre style={{ fontSize: 12, width: "min(100%, 480px)", whiteSpace: "pre-wrap" }}>
-          {log.join("\n") || "tap a region…"}
-        </pre>
+        ))}
+      {urls && (
+        <video
+          ref={(el) => {
+            idleRef.current = el;
+            prepVideo(el);
+          }}
+          src={urls[avatar.idle]}
+          muted
+          loop
+          autoPlay
+          playsInline
+          preload="auto"
+          className="player-video"
+          style={{ zIndex: 2 }}
+        />
       )}
-    </>
+
+      {!urls && (
+        <div className="player-loading" role="status" aria-live="polite">
+          {error ? (
+            <p>Couldn&apos;t load {avatar.name}. Check your connection and try again.</p>
+          ) : (
+            <>
+              <svg viewBox="0 0 36 36" className="progress-ring" aria-hidden>
+                <circle cx="18" cy="18" r="15.5" className="progress-track" />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.5"
+                  className="progress-value"
+                  strokeDasharray={`${progress * 97.4} 97.4`}
+                />
+              </svg>
+              <span>Waking up {avatar.name}… {Math.round(progress * 100)}%</span>
+            </>
+          )}
+        </div>
+      )}
+
+      {urls && (
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="player-hits"
+          onClick={onTap}
+          role="group"
+          aria-label={`Touch ${avatar.name}`}
+        >
+          {avatar.actions.map((a) => (
+            <path
+              key={a.id}
+              data-action={a.id}
+              d={regionPath(a.region)}
+              className={`hit ${showHints || debug ? "hit--shown" : ""}`}
+              vectorEffect="non-scaling-stroke"
+            >
+              <title>{a.label}</title>
+            </path>
+          ))}
+        </svg>
+      )}
+
+      {urls && showHints && (
+        <div className="hint-dots" aria-hidden>
+          {avatar.actions.map((a) => {
+            const [x, y] = regionCenter(a.region);
+            return <span key={a.id} className="hint-dot" style={{ left: `${x}%`, top: `${y}%` }} />;
+          })}
+        </div>
+      )}
+
+      <div className="ripples" aria-hidden>
+        {ripples.map((r) => (
+          <span key={r.id} className="ripple" style={{ left: `${r.x}%`, top: `${r.y}%` }}>
+            {r.label && <span className="ripple-label">{r.label}!</span>}
+          </span>
+        ))}
+      </div>
+
+      {debug && <pre className="player-debug">{log.join("\n") || "tap a region…"}</pre>}
+    </div>
   );
 }
-
-const videoStyle: React.CSSProperties = {
-  position: "absolute",
-  inset: 0,
-  width: "100%",
-  height: "100%",
-  objectFit: "fill",
-};
