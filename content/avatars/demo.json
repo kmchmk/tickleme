@@ -1,0 +1,22 @@
+{
+  "id": "demo",
+  "name": "Demo (add your clips)",
+  "premium": false,
+  "aspectRatio": 0.5625,
+  "idle": "idle.mp4",
+  "poster": "poster.jpg",
+  "actions": [
+    {
+      "id": "wave",
+      "label": "Raise hand",
+      "video": "wave.mp4",
+      "region": { "shape": "rect", "x": 60, "y": 35, "w": 30, "h": 25 }
+    },
+    {
+      "id": "nod",
+      "label": "Nod head",
+      "video": "nod.mp4",
+      "region": { "shape": "polygon", "points": [[35, 8], [65, 8], [65, 30], [35, 30]] }
+    }
+  ]
+}
