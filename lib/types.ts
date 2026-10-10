@@ -8,7 +8,8 @@ export interface AvatarAction {
   label: string;
   /** Filename inside /public/avatars/<avatar id>/ . Must start AND end on the idle frame. */
   video: string;
-  region: Region;
+  /** One or more areas that trigger this clip (e.g. both ears). */
+  region: Region | Region[];
 }
 
 export interface AvatarManifest {

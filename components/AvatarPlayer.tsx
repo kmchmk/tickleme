@@ -23,10 +23,15 @@ const onFramePainted = (v: HTMLVideoElement, cb: () => void) => {
   else requestAnimationFrame(() => requestAnimationFrame(cb));
 };
 
-const regionPath = (r: Region) =>
-  r.shape === "rect"
-    ? `M${r.x},${r.y}h${r.w}v${r.h}h${-r.w}z`
-    : `M${r.points.map((p) => p.join(",")).join("L")}z`;
+const regionPath = (region: Region | Region[]) =>
+  [region]
+    .flat()
+    .map((r) =>
+      r.shape === "rect"
+        ? `M${r.x},${r.y}h${r.w}v${r.h}h${-r.w}z`
+        : `M${r.points.map((p) => p.join(",")).join("L")}z`,
+    )
+    .join("");
 
 async function toBlobUrl(url: string): Promise<string> {
   const res = await fetch(url);

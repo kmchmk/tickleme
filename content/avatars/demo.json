@@ -1,22 +1,163 @@
 {
   "id": "demo",
-  "name": "Demo (add your clips)",
+  "name": "Demo Buddy",
   "premium": false,
   "aspectRatio": 0.5625,
   "idle": "idle.mp4",
   "poster": "poster.jpg",
   "actions": [
     {
+      "id": "kickL",
+      "label": "Kick (left leg)",
+      "video": "kickL.mp4",
+      "region": {
+        "shape": "rect",
+        "x": 32,
+        "y": 70,
+        "w": 16,
+        "h": 23
+      }
+    },
+    {
+      "id": "kickR",
+      "label": "Kick (right leg)",
+      "video": "kickR.mp4",
+      "region": {
+        "shape": "rect",
+        "x": 52,
+        "y": 70,
+        "w": 16,
+        "h": 23
+      }
+    },
+    {
+      "id": "waveL",
+      "label": "Wave (left arm)",
+      "video": "waveL.mp4",
+      "region": {
+        "shape": "rect",
+        "x": 18,
+        "y": 43,
+        "w": 12.5,
+        "h": 21
+      }
+    },
+    {
       "id": "wave",
-      "label": "Raise hand",
+      "label": "Wave (right arm)",
       "video": "wave.mp4",
-      "region": { "shape": "rect", "x": 60, "y": 35, "w": 30, "h": 25 }
+      "region": {
+        "shape": "rect",
+        "x": 69.5,
+        "y": 43,
+        "w": 12.5,
+        "h": 21
+      }
+    },
+    {
+      "id": "giggle",
+      "label": "Giggle (belly)",
+      "video": "giggle.mp4",
+      "region": {
+        "shape": "rect",
+        "x": 31,
+        "y": 45,
+        "w": 39,
+        "h": 25
+      }
+    },
+    {
+      "id": "shrug",
+      "label": "Shrug (neck & shoulders)",
+      "video": "shrug.mp4",
+      "region": {
+        "shape": "rect",
+        "x": 30,
+        "y": 38.5,
+        "w": 40,
+        "h": 6.5
+      }
     },
     {
       "id": "nod",
-      "label": "Nod head",
+      "label": "Nod (head)",
       "video": "nod.mp4",
-      "region": { "shape": "polygon", "points": [[35, 8], [65, 8], [65, 30], [35, 30]] }
+      "region": {
+        "shape": "rect",
+        "x": 36,
+        "y": 23.4,
+        "w": 28,
+        "h": 15.6
+      }
+    },
+    {
+      "id": "jump",
+      "label": "Jump (hair)",
+      "video": "jump.mp4",
+      "region": {
+        "shape": "rect",
+        "x": 35,
+        "y": 20,
+        "w": 30,
+        "h": 4.5
+      }
+    },
+    {
+      "id": "earWiggle",
+      "label": "Wiggle ears",
+      "video": "earWiggle.mp4",
+      "region": [
+        {
+          "shape": "rect",
+          "x": 31,
+          "y": 27.5,
+          "w": 5.5,
+          "h": 6.5
+        },
+        {
+          "shape": "rect",
+          "x": 63.5,
+          "y": 27.5,
+          "w": 5.5,
+          "h": 6.5
+        }
+      ]
+    },
+    {
+      "id": "blink",
+      "label": "Blink (eyes)",
+      "video": "blink.mp4",
+      "region": {
+        "shape": "rect",
+        "x": 41,
+        "y": 27.5,
+        "w": 18,
+        "h": 4
+      }
+    },
+    {
+      "id": "sneeze",
+      "label": "Sneeze (nose)",
+      "video": "sneeze.mp4",
+      "region": {
+        "shape": "rect",
+        "x": 47,
+        "y": 31.3,
+        "w": 6,
+        "h": 2.6
+      }
+    },
+    {
+      "id": "laugh",
+      "label": "Laugh (mouth)",
+      "video": "laugh.mp4",
+      "region": {
+        "shape": "rect",
+        "x": 43,
+        "y": 34.2,
+        "w": 14,
+        "h": 3.4
+      }
     }
   ]
 }
