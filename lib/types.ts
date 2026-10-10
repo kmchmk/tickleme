@@ -17,6 +17,8 @@ export interface AvatarManifest {
   name: string;
   /** Reserved for the future paywall. Free avatars have premium: false. */
   premium: boolean;
+  /** Bump after re-uploading clips so browsers drop their IndexedDB copies. */
+  version?: number;
   /** width / height of every clip (all clips must share it). */
   aspectRatio: number;
   /** Looping, near-motionless clip shown on top when nothing is happening. */

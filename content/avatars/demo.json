@@ -2,6 +2,7 @@
   "id": "demo",
   "name": "Demo Buddy",
   "premium": false,
+  "version": 1,
   "aspectRatio": 0.5625,
   "idle": "idle.mp4",
   "poster": "poster.jpg",

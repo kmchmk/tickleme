@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { assetUrl } from "@/lib/avatars";
+import { getClip } from "@/lib/videoCache";
 import type { AvatarAction, AvatarManifest, Region } from "@/lib/types";
 
 /**
@@ -20,8 +21,8 @@ import type { AvatarAction, AvatarManifest, Region } from "@/lib/types";
  * keeps their current frame decoded and ready to paint. Nothing depends on
  * frame callbacks from a covered video, which browsers may never fire.
  *
- * Every clip is downloaded fully into a blob URL before the avatar is shown, so
- * playback never stalls on the network.
+ * Every clip is loaded fully (from the IndexedDB cache, else the network) into
+ * a blob URL before the avatar is shown, so playback never stalls.
  */
 
 const regionPath = (region: Region | Region[]) =>
@@ -34,11 +35,6 @@ const regionPath = (region: Region | Region[]) =>
     )
     .join("");
 
-async function toBlobUrl(url: string): Promise<string> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${url}: ${res.status}`);
-  return URL.createObjectURL(await res.blob());
-}
 
 const once = (el: HTMLVideoElement, event: string) =>
   new Promise<void>((resolve) => el.addEventListener(event, () => resolve(), { once: true }));
@@ -80,7 +76,7 @@ export default function AvatarPlayer({
     const files = [avatar.idle, ...avatar.actions.map((a) => a.video)];
     Promise.all(
       files.map(async (f) => {
-        const u = await toBlobUrl(assetUrl(avatar, f));
+        const u = URL.createObjectURL(await getClip(assetUrl(avatar, f), avatar.version ?? 1));
         created.push(u);
         return [f, u] as const;
       }),
