@@ -2,9 +2,9 @@
   "id": "avatar-1",
   "name": "Avatar 1",
   "pricing": {
-    "taps": 3,
-    "explicit": 7,
-    "bundle": 9
+    "taps": 0.69,
+    "explicit": 0.69,
+    "bundle": 0.99
   },
   "variants": {
     "jeans": {
@@ -244,9 +244,9 @@
           "region": {
             "shape": "rect",
             "x": 41,
-            "y": 20,
+            "y": 19.5,
             "w": 18,
-            "h": 5.5
+            "h": 3.5
           },
           "tier": "free"
         },
@@ -294,7 +294,7 @@
       "idle": "idle-bikini.mp4",
       "poster": "poster.jpg",
       "aspectRatio": 0.6667,
-      "version": 4,
+      "version": 5,
       "actions": [
         {
           "id": "17-right-thigh",
@@ -307,7 +307,7 @@
             "w": 14,
             "h": 18
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "18-left-thigh",
@@ -320,7 +320,7 @@
             "w": 14,
             "h": 18
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "19-right-foot",
@@ -359,7 +359,7 @@
             "w": 9.5,
             "h": 8.5
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "16-left-hip",
@@ -372,7 +372,7 @@
             "w": 9.5,
             "h": 8.5
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "11-belly",
@@ -385,7 +385,7 @@
             "w": 12,
             "h": 12
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "12-right-ribs",
@@ -398,7 +398,7 @@
             "w": 7,
             "h": 8
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "13-left-ribs",
@@ -411,7 +411,7 @@
             "w": 7,
             "h": 8
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "03-right-forearm",
@@ -476,7 +476,7 @@
             "w": 7,
             "h": 8
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "10-left-underarm",
@@ -489,7 +489,7 @@
             "w": 7,
             "h": 8
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "05-right-shoulder",
@@ -524,11 +524,11 @@
           "region": {
             "shape": "rect",
             "x": 41,
-            "y": 20,
+            "y": 19.5,
             "w": 18,
-            "h": 5.5
+            "h": 3.5
           },
-          "tier": "taps"
+          "tier": "free"
         },
         {
           "id": "07-neck",
@@ -564,6 +564,45 @@
             }
           ],
           "tier": "free"
+        },
+        {
+          "id": "21-right-breast",
+          "label": "Right breast",
+          "video": "21-right-breast.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 39,
+            "y": 22.5,
+            "w": 11,
+            "h": 9
+          },
+          "tier": "taps"
+        },
+        {
+          "id": "22-left-breast",
+          "label": "Left breast",
+          "video": "22-left-breast.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 50,
+            "y": 22.5,
+            "w": 11,
+            "h": 9
+          },
+          "tier": "taps"
+        },
+        {
+          "id": "23-private-area",
+          "label": "Private area",
+          "video": "23-private-area.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 44.5,
+            "y": 46.5,
+            "w": 11,
+            "h": 6.5
+          },
+          "tier": "taps"
         }
       ]
     },
@@ -804,9 +843,9 @@
           "region": {
             "shape": "rect",
             "x": 41,
-            "y": 20,
+            "y": 19.5,
             "w": 18,
-            "h": 5.5
+            "h": 3.5
           },
           "tier": "explicit"
         },

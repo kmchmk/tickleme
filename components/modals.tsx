@@ -39,7 +39,7 @@ export function SignInModal({ onClose, why }: { onClose?: () => void; why: strin
   );
 }
 
-export function AgeModal({ onConfirmed, mention }: { onConfirmed: () => void; mention: string }) {
+export function AgeModal({ onConfirmed, mention, onClose }: { onConfirmed: () => void; mention: string; onClose?: () => void }) {
   const { refresh } = useViewer();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
@@ -56,7 +56,7 @@ export function AgeModal({ onConfirmed, mention }: { onConfirmed: () => void; me
     }
   };
   return (
-    <Modal title="Adults only (18+)">
+    <Modal title="Adults only (18+)" onClose={onClose}>
       <p className="modal-text">
         {mention} contains adult themes and is for people aged <strong>18 or older</strong> only. By continuing you confirm that you are at least 18 years old and
         that viewing this content is legal where you live.
@@ -84,7 +84,7 @@ interface Order {
 }
 
 const COPY: Record<Product, { title: string; blurb: string }> = {
-  taps: { title: "More tap locations", blurb: "Unlock every tap location on this avatar." },
+  taps: { title: "More tap locations", blurb: "Unlock the extra tap locations on this avatar." },
   explicit: { title: "Explicit avatar", blurb: "Unlock the explicit version of this avatar." },
   bundle: { title: "Bundle", blurb: "All tap locations and the explicit avatar, together." },
 };
@@ -141,7 +141,7 @@ export function PaywallModal({
     return () => clearInterval(t);
   }, [order, poll]);
 
-  const price = (p: Product) => avatar.pricing[p].toFixed(2).replace(/\.00$/, "");
+  const price = (p: Product) => avatar.pricing[p].toFixed(2);
 
   return (
     <Modal title={COPY[need].title} onClose={order?.status === "paid" ? undefined : onClose}>

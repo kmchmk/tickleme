@@ -357,7 +357,8 @@ a.card:active {
   border-radius: clamp(16px, 3cqmin, 28px);
   overflow: hidden;
   background-color: #000;
-  background-size: 100% 100%;
+  background-size: cover;
+  background-position: center;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.08),
     0 24px 80px rgba(0, 0, 0, 0.5);
@@ -918,4 +919,42 @@ a.card:active {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ---------- Teaser (blurred picture with an Unlock button) ---------- */
+
+.teaser {
+  position: absolute;
+  inset: 0;
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 24px 20px 28px;
+  text-align: center;
+  background: linear-gradient(to top, rgba(23, 18, 31, 0.85), rgba(23, 18, 31, 0) 60%);
+}
+
+.teaser-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(23, 18, 31, 0.7);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.teaser-text {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.teaser-price {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
 }
