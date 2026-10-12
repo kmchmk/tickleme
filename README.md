@@ -16,7 +16,7 @@ Access rules live in `lib/access.ts` (pure, unit-tested). The server never sends
 
 ## Architecture (all free tiers)
 - **Next.js on Vercel.** NOTE: Vercel's Hobby plan is for non-commercial use only. Upgrade (Pro) or move hosts before charging money.
-- **Sign-in: Clerk** (email link). Without its keys the site is guest-only.
+- **Sign-in: Clerk** (email one-time code; email link needs a custom domain). On `*.vercel.app` Clerk runs through its built-in `/__clerk` proxy (no DNS), which is why `proxy.ts` routes that path. Without its keys the site is guest-only.
 - **Database: Neon Postgres**: `profiles` (age confirmation), `orders`, `entitlements` (`db/schema.sql`). The app uses the restricted role `tickleme_app` (select/insert/update only).
 - **Buckets: Neon storage**
   - `avatars-free` (public): jeans clips + every poster. The explicit poster is a *blurred* teaser.
