@@ -45,17 +45,27 @@ def order(a):
     key = next(k for k in PRIORITY if name.endswith(k))
     return PRIORITY.index(key)
 
+# Per-avatar file layout.
+#  - jeans: the generator now delivers perfect cycles (last frame == first frame),
+#    so the original files are played directly (no processing, no web/ copies).
+#  - bikini: still the blended web/ copies until its clips are replaced as well.
 AVATARS = {
-    "woman-in-jeans": "Woman in Jeans",
-    "woman-in-bikini": "Woman in Bikini",
+    "woman-in-jeans": dict(
+        name="Woman in Jeans", aspect=480 / 720, prefix="",
+        idle="idle-jeans.mp4", poster="poster.jpg", version=3,
+    ),
+    "woman-in-bikini": dict(
+        name="Woman in Bikini", aspect=480 / 832, prefix="web/",
+        idle="web/idle.mp4", poster="web/poster.jpg", version=2,
+    ),
 }
-for id_, name in AVATARS.items():
+for id_, cfg in AVATARS.items():
     acts = sorted(actions(), key=order)
     manifest = {
-        "id": id_, "name": name, "premium": False, "version": 2,
-        "aspectRatio": round(480 / 832, 4),
-        "idle": "web/idle.mp4", "poster": "web/poster.jpg",
-        "actions": [{"id": f, "label": l, "video": f"web/{f}.mp4", "region": r} for f, l, r in acts],
+        "id": id_, "name": cfg["name"], "premium": False, "version": cfg["version"],
+        "aspectRatio": round(cfg["aspect"], 4),
+        "idle": cfg["idle"], "poster": cfg["poster"],
+        "actions": [{"id": f, "label": l, "video": f"{cfg['prefix']}{f}.mp4", "region": r} for f, l, r in acts],
     }
     open(f"content/avatars/{id_}.json", "w").write(json.dumps(manifest, indent=2) + "\n")
     print(id_, len(acts), "actions")
