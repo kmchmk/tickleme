@@ -43,9 +43,10 @@ export function ViewerProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Without Clerk there is no auth event to wait for, so load once. With Clerk the watcher drives it.
+  // Always load once on mount: guest features (jeans) must never wait for the sign-in service.
+  // With Clerk, the watcher below refreshes again whenever the signed-in state changes.
   useEffect(() => {
-    if (!AUTH_ENABLED) void refresh();
+    void refresh();
   }, [refresh]);
 
   const value = useMemo(() => ({ viewer, features, refresh }), [viewer, features, refresh]);

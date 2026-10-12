@@ -10,7 +10,13 @@ export function SignInTrigger({ children, className = "btn" }: { children?: Reac
   const label = children ?? "Sign in";
   if (AUTH_ENABLED) {
     return (
-      <ClerkSignIn>
+      <ClerkSignIn
+        fallback={
+          <button type="button" className={className} disabled title="Sign-in is loading or unavailable">
+            {label}
+          </button>
+        }
+      >
         <button type="button" className={className}>
           {label}
         </button>
