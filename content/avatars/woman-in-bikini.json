@@ -2,7 +2,7 @@
   "id": "woman-in-bikini",
   "name": "Woman in Bikini",
   "premium": false,
-  "version": 1,
+  "version": 2,
   "aspectRatio": 0.5769,
   "idle": "web/idle.mp4",
   "poster": "web/poster.jpg",

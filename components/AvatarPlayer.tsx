@@ -10,18 +10,20 @@ type Ripple = { id: number; x: number; y: number; label?: string };
 /**
  * Seamless switching between an idle loop and short action clips.
  *
- * Every clip has its own <video>, stacked in the same box. Exactly one of them
- * is "on top" (z-index); the others sit underneath, paused on their first
- * frame. Because every action clip starts and ends on the idle frame, swapping
- * which element is on top at the right moment is invisible:
+ * Every clip has its own <video>, stacked in the same box. The idle loop sits on
+ * top; action clips wait underneath, paused on their first frame. Every action
+ * clip starts on the idle's first frame and ends on it again:
  *
- *   tap  -> clip.play(); once it is actually playing, raise it and pause idle
- *   end  -> clip is frozen on its last frame (= idle frame 0); seek idle to 0,
- *           and once the seek is done raise idle and resume it
+ *   tap  -> clip.play(); once it is actually playing, fade it in over the still
+ *           running idle (FADE_MS), so a tap while idle is mid-motion has no
+ *           hard jump; then pause idle and pre-seek it to frame 0, unseen
+ *   end  -> clip is frozen on its last frame (= idle frame 0); put idle on top
+ *           again and resume it. Frames match, so this swap is invisible
  *
- * The elements are never hidden (display/visibility/opacity), so the browser
- * keeps their current frame decoded and ready to paint. Nothing depends on
- * frame callbacks from a covered video, which browsers may never fire.
+ * Elements are never display:none/visibility:hidden (the fading clip only has
+ * its opacity animated while on top), so the browser keeps decoded frames ready.
+ * Nothing depends on frame callbacks from a covered video, which browsers may
+ * never fire.
  *
  * Every clip is loaded fully (from the IndexedDB cache, else the network) into
  * a blob URL before the avatar is shown, so playback never stalls.
@@ -48,6 +50,9 @@ const regionCenter = (region: Region | Region[]): [number, number] => {
 
 /** "Kick (left leg)" -> "Kick" */
 const shortLabel = (label: string) => label.replace(/\s*\(.*\)\s*$/, "");
+
+/** Cross-fade length when an action clip takes over from the idle loop. */
+const FADE_MS = 200;
 
 const once = (el: HTMLVideoElement, event: string) =>
   new Promise<void>((resolve) => el.addEventListener(event, () => resolve(), { once: true }));
@@ -116,12 +121,6 @@ export default function AvatarPlayer({
     if (urls) onReady?.();
   }, [urls, onReady]);
 
-  const raise = (top: HTMLVideoElement) => {
-    for (const v of [idleRef.current, ...Object.values(clipRefs.current)]) {
-      if (v) v.style.zIndex = v === top ? "2" : "1";
-    }
-  };
-
   // Mobile browsers ignore preload; on the first tap, decode every clip's first
   // frame (play+pause inside the user gesture) so later swaps are instant.
   const prime = (except: HTMLVideoElement) => {
@@ -157,15 +156,24 @@ export default function AvatarPlayer({
         busy.current = false;
         return;
       }
-      raise(clip);
-      idle.pause();
+      // Fade the clip in above the still-running idle.
+      clip.style.transition = "none";
+      clip.style.opacity = "0";
+      clip.style.zIndex = "3";
+      void clip.offsetWidth; // commit opacity 0 before animating
+      clip.style.transition = `opacity ${FADE_MS}ms linear`;
+      clip.style.opacity = "1";
       note(`playing ${action.id}`);
+      await new Promise((r) => setTimeout(r, FADE_MS + 30));
+      idle.pause();
+      idle.currentTime = 0; // pre-seek while fully covered
 
       await once(clip, "ended");
       // clip now shows its last frame == idle frame 0
-      idle.currentTime = 0;
       if (idle.seeking) await once(idle, "seeked");
-      raise(idle);
+      clip.style.zIndex = "1"; // idle (z-index 2) is on top again
+      clip.style.transition = "none";
+      clip.style.opacity = "1";
       await idle.play().catch(() => {});
       clip.currentTime = 0; // rewind underneath, ready for next tap
       busy.current = false;

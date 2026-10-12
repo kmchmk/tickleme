@@ -52,7 +52,7 @@ AVATARS = {
 for id_, name in AVATARS.items():
     acts = sorted(actions(), key=order)
     manifest = {
-        "id": id_, "name": name, "premium": False, "version": 1,
+        "id": id_, "name": name, "premium": False, "version": 2,
         "aspectRatio": round(480 / 832, 4),
         "idle": "web/idle.mp4", "poster": "web/poster.jpg",
         "actions": [{"id": f, "label": l, "video": f"web/{f}.mp4", "region": r} for f, l, r in acts],
