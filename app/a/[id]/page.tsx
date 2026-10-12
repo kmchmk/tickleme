@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AvatarScreen from "@/components/AvatarScreen";
-import { getAvatar, getPlayableAvatars } from "@/lib/avatars";
+import { isVariantKey } from "@/lib/access";
+import { getAvatar, summarize } from "@/lib/avatars";
 
-export const dynamicParams = false;
-export const generateStaticParams = () => getPlayableAvatars().map((a) => ({ id: a.id }));
-
-type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ debug?: string }> };
+type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ v?: string; debug?: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const avatar = getAvatar((await params).id);
@@ -15,9 +13,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function AvatarPage({ params, searchParams }: Params) {
   const { id } = await params;
-  const { debug } = await searchParams;
+  const { v, debug } = await searchParams;
   const avatar = getAvatar(id);
   if (!avatar) notFound();
-  // TODO(paywall): gate avatar.premium here (auth/payment check) before rendering.
-  return <AvatarScreen avatar={avatar} debug={debug === "1"} />;
+  return <AvatarScreen avatar={summarize(avatar)} initialVariant={v && isVariantKey(v) ? v : "jeans"} debug={debug === "1"} />;
 }

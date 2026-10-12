@@ -268,7 +268,7 @@ a.card:active {
   height: 100vh;
   height: 100dvh;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   padding: var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l);
   overflow: hidden;
   overscroll-behavior: none;
@@ -288,7 +288,7 @@ a.card:active {
 
 .screen-bar {
   display: grid;
-  grid-template-columns: 44px 1fr 44px;
+  grid-template-columns: 44px 1fr auto;
   align-items: center;
   gap: 8px;
   padding: 10px 12px 6px;
@@ -385,6 +385,14 @@ a.card:active {
 @media (max-height: 520px) {
   .screen {
     grid-template-rows: minmax(0, 1fr);
+  }
+  .tabs {
+    position: absolute;
+    top: calc(var(--safe-t) + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    padding: 0;
   }
   .screen-tip {
     display: none;
@@ -605,5 +613,309 @@ a.card:active {
   .ripple::before,
   .ripple-label {
     animation-duration: 0.01s;
+  }
+}
+
+/* ---------- Account, buttons, chips, tabs ---------- */
+
+.home-top {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 40px;
+}
+
+.account-slot {
+  display: inline-block;
+  width: 40px;
+  height: 36px;
+}
+
+.screen-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+
+.btn {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.15s ease, opacity 0.2s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--small {
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+.btn--ghost {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.chips {
+  display: flex;
+  gap: 4px;
+  padding: 10px 10px 0;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip--on {
+  background: var(--accent);
+  border-color: transparent;
+  color: #1b1020;
+}
+
+.chip-lock {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card--avatar:hover {
+  border-color: rgba(255, 122, 89, 0.5);
+}
+
+.card-link {
+  display: block;
+}
+
+.card-media img.dim {
+  filter: brightness(0.7);
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 2px 12px 6px;
+}
+
+.tab {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(23, 18, 31, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab--on {
+  background: var(--accent);
+  border-color: transparent;
+  color: #1b1020;
+}
+
+/* ---------- Locked tap locations ---------- */
+
+.hit--locked {
+  fill: rgba(23, 18, 31, 0.28);
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-dasharray: 3 3;
+}
+
+.lock-dot {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(23, 18, 31, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.lock-dot svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.player-gate {
+  gap: 12px;
+}
+
+.gate-text {
+  margin: 0;
+  max-width: 24ch;
+}
+
+/* ---------- Dialogs ---------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(10, 7, 16, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.modal {
+  width: min(100%, 420px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 22px 20px 18px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.modal-title {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.modal-text {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.modal-text--dim,
+.modal-fine {
+  color: var(--muted);
+}
+
+.modal-fine {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.modal-error {
+  margin: 0 0 10px;
+  color: #ff9d9d;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.modal-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.options {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.option--on {
+  border-color: var(--accent);
+  background: rgba(255, 122, 89, 0.1);
+}
+
+.option-main {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.option-main strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.option-price {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.qr {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  margin: 8px 0;
+}
+
+.qr img {
+  border-radius: 12px;
+  background: #fff;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner--small {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }

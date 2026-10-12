@@ -1,4 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import { ViewerProvider } from "@/components/viewer";
+import { AUTH_ENABLED } from "@/lib/config-public";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,9 +25,13 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
+  const body = (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ViewerProvider>{children}</ViewerProvider>
+      </body>
     </html>
   );
+  // Clerk (email-link sign-in) wraps the app only when it is configured.
+  return AUTH_ENABLED ? <ClerkProvider>{body}</ClerkProvider> : body;
 }

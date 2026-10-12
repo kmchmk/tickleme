@@ -1,7 +1,9 @@
 /**
  * Caches clip files in IndexedDB so repeat visits load the avatar without
- * touching the network. Entries are keyed by URL and tagged with the avatar's
- * `version`; bump the version in the manifest after re-uploading clips.
+ * touching the network. Entries are keyed by a STABLE key from the server (the
+ * download URL of private clips is signed and changes every time) and tagged
+ * with the variant's `version`; bump the version after re-uploading clips.
+ * Keys of private clips start with "private:" and are wiped on sign-out.
  * Any IndexedDB failure (private mode, quota) falls back to a plain fetch.
  */
 
@@ -39,14 +41,24 @@ async function download(url: string): Promise<Blob> {
   return res.blob();
 }
 
-export async function getClip(url: string, version: number): Promise<Blob> {
+export async function getClip(key: string, url: string, version: number): Promise<Blob> {
   try {
-    const hit = await tx<Entry | undefined>("readonly", (s) => s.get(url));
+    const hit = await tx<Entry | undefined>("readonly", (s) => s.get(key));
     if (hit && hit.version === version) return hit.blob;
   } catch {
     return download(url);
   }
   const blob = await download(url);
-  tx("readwrite", (s) => s.put({ version, blob } satisfies Entry, url)).catch(() => {});
+  tx("readwrite", (s) => s.put({ version, blob } satisfies Entry, key)).catch(() => {});
   return blob;
+}
+
+/** Forget every cached private clip (called on sign-out so a shared device keeps nothing). */
+export async function clearPrivateClips(): Promise<void> {
+  try {
+    const keys = await tx<IDBValidKey[]>("readonly", (s) => s.getAllKeys());
+    await Promise.all(keys.filter((k) => String(k).startsWith("private:")).map((k) => tx("readwrite", (s) => s.delete(k))));
+  } catch {
+    /* nothing cached, or storage unavailable */
+  }
 }

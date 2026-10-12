@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { assetUrl } from "@/lib/avatars";
 import { getClip } from "@/lib/videoCache";
-import type { AvatarAction, AvatarManifest, Region } from "@/lib/types";
+import type { PlayerAction, PlayerManifest, Region } from "@/lib/types";
 
 type Ripple = { id: number; x: number; y: number; label?: string };
 
@@ -69,16 +68,21 @@ const prepVideo = (el: HTMLVideoElement | null) => {
 };
 
 export default function AvatarPlayer({
-  avatar,
+  manifest,
   showHints = false,
   debug = false,
   onReady,
+  onLockedTap,
 }: {
-  avatar: AvatarManifest;
+  manifest: PlayerManifest;
   showHints?: boolean;
   debug?: boolean;
   onReady?: () => void;
+  /** Called when a locked tap location is tapped (no clip exists for it). */
+  onLockedTap?: (action: PlayerAction) => void;
 }) {
+  // Only unlocked actions have a clip; locked ones are just a lock on the picture.
+  const playable = manifest.actions.filter((a) => a.url);
   const [urls, setUrls] = useState<Record<string, string> | null>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -102,15 +106,15 @@ export default function AvatarPlayer({
   useEffect(() => {
     let cancelled = false;
     const created: string[] = [];
-    const files = [avatar.idle, ...avatar.actions.map((a) => a.video)];
+    const files = [{ key: manifest.idle.key, url: manifest.idle.url }, ...playable.map((a) => ({ key: a.key, url: a.url! }))];
     let done = 0;
     setProgress(0);
     Promise.all(
       files.map(async (f) => {
-        const u = URL.createObjectURL(await getClip(assetUrl(avatar, f), avatar.version ?? 1));
+        const u = URL.createObjectURL(await getClip(f.key, f.url, manifest.version));
         created.push(u);
         if (!cancelled) setProgress(++done / files.length);
-        return [f, u] as const;
+        return [f.key, u] as const;
       }),
     )
       .then((entries) => !cancelled && setUrls(Object.fromEntries(entries)))
@@ -119,7 +123,8 @@ export default function AvatarPlayer({
       cancelled = true;
       created.forEach(URL.revokeObjectURL);
     };
-  }, [avatar]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manifest]);
 
   useEffect(() => {
     if (urls) onReady?.();
@@ -143,7 +148,7 @@ export default function AvatarPlayer({
   };
 
   const play = useCallback(
-    async (action: AvatarAction) => {
+    async (action: PlayerAction) => {
       const idle = idleRef.current;
       const next = clipRefs.current[action.id];
       const snap = snapRef.current;
@@ -220,24 +225,26 @@ export default function AvatarPlayer({
     const x = ((e.clientX - box.left) / box.width) * 100;
     const y = ((e.clientY - box.top) / box.height) * 100;
     const id = (e.target as Element).closest("[data-action]")?.getAttribute("data-action");
-    const action = avatar.actions.find((a) => a.id === id);
-    const ripple = { id: ++rippleId.current, x, y, label: action ? shortLabel(action.label) : undefined };
+    const action = manifest.actions.find((a) => a.id === id);
+    const ripple = { id: ++rippleId.current, x, y, label: action ? (action.locked ? "🔒 Locked" : shortLabel(action.label)) : undefined };
     setRipples((r) => [...r, ripple]);
     setTimeout(() => setRipples((r) => r.filter((p) => p.id !== ripple.id)), 900);
-    if (action) void play(action);
+    if (!action) return;
+    if (action.locked) onLockedTap?.(action);
+    else void play(action);
   };
 
   return (
     <div className="player">
       {urls &&
-        avatar.actions.map((a) => (
+        playable.map((a) => (
           <video
             key={a.id}
             ref={(el) => {
               clipRefs.current[a.id] = el;
               prepVideo(el);
             }}
-            src={urls[a.video]}
+            src={urls[a.key]}
             muted
             playsInline
             preload="auto"
@@ -251,7 +258,7 @@ export default function AvatarPlayer({
             idleRef.current = el;
             prepVideo(el);
           }}
-          src={urls[avatar.idle]}
+          src={urls[manifest.idle.key]}
           muted
           loop
           autoPlay
@@ -267,7 +274,7 @@ export default function AvatarPlayer({
       {!urls && (
         <div className="player-loading" role="status" aria-live="polite">
           {error ? (
-            <p>Couldn&apos;t load {avatar.name}. Check your connection and try again.</p>
+            <p>Couldn&apos;t load {manifest.name}. Check your connection and try again.</p>
           ) : (
             <>
               <svg viewBox="0 0 36 36" className="progress-ring" aria-hidden>
@@ -280,7 +287,7 @@ export default function AvatarPlayer({
                   strokeDasharray={`${progress * 97.4} 97.4`}
                 />
               </svg>
-              <span>Waking up {avatar.name}… {Math.round(progress * 100)}%</span>
+              <span>Waking up {manifest.name}… {Math.round(progress * 100)}%</span>
             </>
           )}
         </div>
@@ -293,14 +300,14 @@ export default function AvatarPlayer({
           className="player-hits"
           onClick={onTap}
           role="group"
-          aria-label={`Touch ${avatar.name}`}
+          aria-label={`Touch ${manifest.name}`}
         >
-          {avatar.actions.map((a) => (
+          {manifest.actions.map((a) => (
             <path
               key={a.id}
               data-action={a.id}
               d={regionPath(a.region)}
-              className={`hit ${showHints || debug ? "hit--shown" : ""}`}
+              className={`hit ${showHints || debug ? "hit--shown" : ""} ${a.locked ? "hit--locked" : ""}`}
               vectorEffect="non-scaling-stroke"
             >
               <title>{a.label}</title>
@@ -309,11 +316,21 @@ export default function AvatarPlayer({
         </svg>
       )}
 
-      {urls && showHints && (
+      {urls && (
         <div className="hint-dots" aria-hidden>
-          {avatar.actions.map((a) => {
+          {manifest.actions.map((a) => {
+            if (!a.locked && !showHints) return null;
             const [x, y] = regionCenter(a.region);
-            return <span key={a.id} className="hint-dot" style={{ left: `${x}%`, top: `${y}%` }} />;
+            return a.locked ? (
+              <span key={a.id} className="lock-dot" style={{ left: `${x}%`, top: `${y}%` }}>
+                <svg viewBox="0 0 24 24">
+                  <rect x="5" y="11" width="14" height="9" rx="2" />
+                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                </svg>
+              </span>
+            ) : (
+              <span key={a.id} className="hint-dot" style={{ left: `${x}%`, top: `${y}%` }} />
+            );
           })}
         </div>
       )}
