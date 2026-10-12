@@ -1,7 +1,8 @@
-import demo from "@/content/avatars/demo.json";
+import womanInJeans from "@/content/avatars/woman-in-jeans.json";
+import womanInBikini from "@/content/avatars/woman-in-bikini.json";
 import type { AvatarManifest } from "./types";
 
-const avatars = [demo] as AvatarManifest[];
+const avatars = [womanInJeans, womanInBikini] as AvatarManifest[];
 
 /** Where clips are hosted, e.g. https://<store>.public.blob.vercel-storage.com. Empty = /public. */
 const ASSET_BASE = (process.env.NEXT_PUBLIC_ASSET_BASE_URL ?? "").replace(/\/$/, "");
