@@ -13,8 +13,9 @@ Interactive avatar: an idle video sits on top of several short action clips. Tap
 ## Dev / deploy
 `npm run dev`, `npm run build`. Deploy by importing the GitHub repo in Vercel (framework auto-detected).
 
-## Photoreal avatars
-- **woman-in-jeans** plays the generator's original files straight from the Neon bucket (`avatars/woman-in-jeans/NN-name.mp4`, `idle-jeans.mp4`, `poster.jpg`): they are perfect cycles (last frame == first frame), so there is no processing step. 480x720.
-- **woman-in-bikini** still plays blended copies from `avatars/woman-in-bikini/web/` (the last 12 frames of each clip are blended into the start frame with ffmpeg `blend`, plus a loop-seam blend on the idle) until its clips are replaced with perfect cycles too. When told, move it to the same layout as jeans (`prefix=""` in `scripts/gen-woman-manifests.py`).
-- Touch areas come from `scripts/gen-woman-manifests.py` (percent of the frame; the subject's right is on the screen's left). The player fades each tapped clip in over a frozen frame, so taps work instantly at any time.
-- After replacing clips in the bucket, bump `version` there so browsers re-download them.
+## Photoreal avatars (woman-in-jeans, woman-in-bikini)
+- Both play the generator's original files straight from the Neon bucket (`avatars/<id>/NN-name.mp4`, `idle-<name>.mp4`, `poster.jpg`), 480x720. The clips are perfect cycles (last frame == first frame), so there is no processing step.
+- Touch areas come from `scripts/gen-woman-manifests.py` (percent of the frame; the subject's right is on the screen's left).
+- The player fades each tapped clip in over a frozen frame of whatever was showing, so taps work instantly at any time, even mid-clip or while the idle is mid-motion.
+- After replacing clips in the bucket, bump `version` in the manifest so browsers re-download them (clips are cached in IndexedDB).
+- `woman-in-nude` is a locked teaser only (no clips); its blurred picture is `web/poster.png`.
