@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AvatarScreen from "@/components/AvatarScreen";
-import { getAvatar, getAvatars } from "@/lib/avatars";
+import { getAvatar, getPlayableAvatars } from "@/lib/avatars";
 
 export const dynamicParams = false;
-export const generateStaticParams = () => getAvatars().map((a) => ({ id: a.id }));
+export const generateStaticParams = () => getPlayableAvatars().map((a) => ({ id: a.id }));
 
 type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ debug?: string }> };
 

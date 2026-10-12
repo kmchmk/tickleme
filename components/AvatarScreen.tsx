@@ -40,7 +40,7 @@ export default function AvatarScreen({ avatar, debug }: { avatar: AvatarManifest
       {poster && <div className="screen-backdrop" style={{ backgroundImage: `url(${poster})` }} aria-hidden />}
 
       <header className="screen-bar">
-        <Link href="/" className="icon-btn" aria-label="Back to all pets">
+        <Link href="/" className="icon-btn" aria-label="Back to all avatars">
           <svg viewBox="0 0 24 24" aria-hidden>
             <path d="M15 5l-7 7 7 7" />
           </svg>

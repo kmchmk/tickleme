@@ -17,6 +17,8 @@ export interface AvatarManifest {
   name: string;
   /** Reserved for the future paywall. Free avatars have premium: false. */
   premium: boolean;
+  /** Teaser only: shown (blurred) on the home page but not playable yet. Has no clips. */
+  locked?: boolean;
   /** Bump after re-uploading clips so browsers drop their IndexedDB copies. */
   version?: number;
   /** width / height of every clip (all clips must share it). */

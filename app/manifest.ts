@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Tickle Me",
     short_name: "Tickle Me",
-    description: "Interactive pets you can touch.",
+    description: "Interactive avatars you can touch.",
     start_url: "/",
     display: "standalone",
     background_color: "#17121f",

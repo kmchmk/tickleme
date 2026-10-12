@@ -176,17 +176,7 @@ a.card:active {
   display: block;
 }
 
-.card-media--emoji {
-  display: grid;
-  place-items: center;
-  background: linear-gradient(160deg, var(--surface-2), var(--bg-2));
-}
 
-.card-emoji {
-  font-size: clamp(48px, 14vw, 72px);
-  filter: grayscale(0.4);
-  opacity: 0.75;
-}
 
 .card-body {
   display: grid;
@@ -203,8 +193,39 @@ a.card:active {
   font-size: 13px;
 }
 
-.card--soon {
-  opacity: 0.7;
+
+/* Locked teaser: blurred picture, dimmed, with a lock badge; not interactive. */
+.card--locked {
+  cursor: not-allowed;
+}
+
+.card--locked .card-media img {
+  filter: brightness(0.7);
+}
+
+.lock-badge {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(23, 18, 31, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.lock-badge svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .home-footer {
