@@ -17,3 +17,5 @@ Interactive avatar: an idle video sits on top of several short action clips. Tap
 - Raw clips (480x832, 16 fps, ~3 s) live in the Neon bucket under `avatars/<id>/NN-name.mp4`. Their last frame drifts from the start frame, so processed copies in `avatars/<id>/web/` blend the final 12 frames back into the shared start frame (ffmpeg `blend`, smoothstep) so the swap back to idle is seamless.
 - `web/idle.mp4` is currently a placeholder (the start frame held for 2 s). Replace it with the real idle clip; it must start on the same frame as the action clips. Bump `version` in the manifest afterwards.
 - Touch areas: `scripts/gen-woman-manifests.py` (percent of the frame; the subject's right is on the screen's left).
+
+> **Planned removal:** the end-of-clip blending and the idle loop-seam blend are a stopgap until the video generator produces perfect cycles (clips that end exactly on their start frame). When told, drop the blend step (`web/` copies) and play the original clips directly; the player's snapshot cross-fade can stay.

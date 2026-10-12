@@ -126,13 +126,19 @@ a {
 }
 
 .grid {
+  --gap: clamp(12px, 2.5vw, 20px);
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(170px, 40vw), 230px));
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: clamp(12px, 2.5vw, 20px);
+  gap: var(--gap);
+}
+
+/* Two per row on narrow screens, up to 230px wide cards on larger ones. */
+.grid > li {
+  width: min(230px, calc((100% - var(--gap)) / 2));
 }
 
 .card {
@@ -156,9 +162,10 @@ a.card:active {
   transform: scale(0.98);
 }
 
+/* Same proportions as the avatar picture (--ar), so nothing is cropped. */
 .card-media {
   position: relative;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: var(--ar, 0.5769);
   background: var(--surface-2);
 }
 
@@ -396,12 +403,23 @@ a.card:active {
   pointer-events: none;
 }
 
+/* Layers: clips 1, idle 2, playing clip 4, snapshot 5, then the UI on top. */
+.player-snap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .player-hits {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 3;
+  z-index: 10;
   cursor: pointer;
 }
 
@@ -426,11 +444,11 @@ a.card:active {
 }
 
 .hint-dots {
-  z-index: 4;
+  z-index: 11;
 }
 
 .ripples {
-  z-index: 5;
+  z-index: 12;
 }
 
 .hint-dot {
@@ -511,7 +529,7 @@ a.card:active {
 .player-loading {
   position: absolute;
   inset: 0;
-  z-index: 6;
+  z-index: 13;
   display: grid;
   place-content: center;
   justify-items: center;
@@ -551,7 +569,7 @@ a.card:active {
   left: 8px;
   right: 8px;
   bottom: 8px;
-  z-index: 7;
+  z-index: 14;
   margin: 0;
   padding: 8px;
   border-radius: 10px;

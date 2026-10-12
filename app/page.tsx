@@ -20,7 +20,7 @@ export default function Home() {
           {getAvatars().map((a) => (
             <li key={a.id}>
               <Link href={`/a/${a.id}`} className="card">
-                <div className="card-media">
+                <div className="card-media" style={{ "--ar": a.aspectRatio } as React.CSSProperties}>
                   {a.poster && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={assetUrl(a, a.poster)} alt="" loading="lazy" />

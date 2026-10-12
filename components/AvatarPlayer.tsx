@@ -8,22 +8,23 @@ import type { AvatarAction, AvatarManifest, Region } from "@/lib/types";
 type Ripple = { id: number; x: number; y: number; label?: string };
 
 /**
- * Seamless switching between an idle loop and short action clips.
+ * Seamless, instantly responsive switching between an idle loop and short
+ * action clips.
  *
- * Every clip has its own <video>, stacked in the same box. The idle loop sits on
- * top; action clips wait underneath, paused on their first frame. Every action
- * clip starts on the idle's first frame and ends on it again:
+ * Every clip has its own <video>, stacked in one box: the idle loop and the
+ * action clips (paused on their first frame). Whatever is showing, a tap works
+ * immediately, even while another clip is mid-play:
  *
- *   tap  -> clip.play(); once it is actually playing, fade it in over the still
- *           running idle (FADE_MS), so a tap while idle is mid-motion has no
- *           hard jump; then pause idle and pre-seek it to frame 0, unseen
- *   end  -> clip is frozen on its last frame (= idle frame 0); put idle on top
- *           again and resume it. Frames match, so this swap is invisible
+ *   tap -> freeze the visible frame on a <canvas> above everything, start the
+ *          tapped clip from frame 0 underneath it, then fade the canvas out
+ *          (FADE_MS). The old clip is paused and rewound, unseen.
+ *   end -> the clip is on its last frame (= idle frame 0): put idle on top
+ *          again and resume it. Frames match, so this swap is invisible.
  *
- * Elements are never display:none/visibility:hidden (the fading clip only has
- * its opacity animated while on top), so the browser keeps decoded frames ready.
- * Nothing depends on frame callbacks from a covered video, which browsers may
- * never fire.
+ * A newer tap cancels the run of the previous one (run counter), so rapid
+ * tapping, or tapping the same spot again, just restarts smoothly.
+ * Videos are never display:none/visibility:hidden, so the browser keeps decoded
+ * frames ready, and nothing waits on frame callbacks from a covered video.
  *
  * Every clip is loaded fully (from the IndexedDB cache, else the network) into
  * a blob URL before the avatar is shown, so playback never stalls.
@@ -85,7 +86,10 @@ export default function AvatarPlayer({
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const idleRef = useRef<HTMLVideoElement>(null);
   const clipRefs = useRef<Record<string, HTMLVideoElement | null>>({});
-  const busy = useRef(false);
+  const snapRef = useRef<HTMLCanvasElement>(null);
+  const runId = useRef(0); // bumped on every tap; stale runs stop touching state
+  const stopWait = useRef<(() => void) | null>(null);
+  const active = useRef<HTMLVideoElement | null>(null); // element currently showing
   const primed = useRef(false);
   const rippleId = useRef(0);
 
@@ -130,6 +134,7 @@ export default function AvatarPlayer({
       if (!v || v === except) continue;
       v.play()
         .then(() => {
+          if (active.current === v) return; // a quick second tap already took it
           v.pause();
           v.currentTime = 0;
         })
@@ -140,43 +145,71 @@ export default function AvatarPlayer({
   const play = useCallback(
     async (action: AvatarAction) => {
       const idle = idleRef.current;
-      const clip = clipRefs.current[action.id];
-      if (!idle || !clip || busy.current) return;
-      busy.current = true;
-      prime(clip);
-      note(`tap ${action.id} (readyState ${clip.readyState})`);
+      const next = clipRefs.current[action.id];
+      const snap = snapRef.current;
+      if (!idle || !next) return;
+      const run = ++runId.current;
+      stopWait.current?.(); // release an earlier run that is waiting for its clip to end
+      const cur = active.current ?? idle;
+      active.current = next;
+      prime(next);
+      note(`tap ${action.id}`);
 
+      // 1. Freeze whatever is showing on the canvas, above everything.
+      if (snap) {
+        if (snap.width !== (cur.videoWidth || 1)) {
+          snap.width = cur.videoWidth || 1;
+          snap.height = cur.videoHeight || 1;
+        }
+        snap.getContext("2d")?.drawImage(cur, 0, 0, snap.width, snap.height);
+        snap.style.transition = "none";
+        snap.style.opacity = "1";
+      }
+
+      // 2. Start the tapped clip from frame 0, on top of the other videos.
+      for (const v of Object.values(clipRefs.current)) if (v) v.style.zIndex = v === next ? "4" : "1";
+      if (cur !== idle && cur !== next) {
+        cur.pause();
+        cur.currentTime = 0;
+      }
       try {
-        if (clip.currentTime !== 0) clip.currentTime = 0;
-        const playing = clip.readyState >= 3 ? Promise.resolve() : once(clip, "playing");
-        await clip.play();
-        await playing;
+        next.currentTime = 0;
+        await next.play();
+        if (next.seeking) await once(next, "seeked");
       } catch (e) {
         note(`play failed: ${(e as Error).message}`);
-        busy.current = false;
+        if (run === runId.current) {
+          active.current = idle;
+          if (snap) snap.style.opacity = "0";
+        }
         return;
       }
-      // Fade the clip in above the still-running idle.
-      clip.style.transition = "none";
-      clip.style.opacity = "0";
-      clip.style.zIndex = "3";
-      void clip.offsetWidth; // commit opacity 0 before animating
-      clip.style.transition = `opacity ${FADE_MS}ms linear`;
-      clip.style.opacity = "1";
+      if (run !== runId.current) return; // a newer tap took over
       note(`playing ${action.id}`);
+
+      // 3. Fade the frozen frame away to reveal the clip.
+      if (snap) {
+        void snap.offsetWidth;
+        snap.style.transition = `opacity ${FADE_MS}ms linear`;
+        snap.style.opacity = "0";
+      }
       await new Promise((r) => setTimeout(r, FADE_MS + 30));
+      if (run !== runId.current) return;
       idle.pause();
       idle.currentTime = 0; // pre-seek while fully covered
 
-      await once(clip, "ended");
-      // clip now shows its last frame == idle frame 0
+      // 4. Wait for the clip to finish, then hand back to idle.
+      await new Promise<void>((resolve) => {
+        next.addEventListener("ended", () => resolve(), { once: true });
+        stopWait.current = resolve;
+      });
+      if (run !== runId.current) return;
       if (idle.seeking) await once(idle, "seeked");
-      clip.style.zIndex = "1"; // idle (z-index 2) is on top again
-      clip.style.transition = "none";
-      clip.style.opacity = "1";
+      if (run !== runId.current) return;
+      next.style.zIndex = "1"; // idle (z-index 2) is on top again
       await idle.play().catch(() => {});
-      clip.currentTime = 0; // rewind underneath, ready for next tap
-      busy.current = false;
+      next.currentTime = 0; // rewind underneath, ready for next tap
+      active.current = idle;
       note(`back to idle`);
     },
     [note],
@@ -188,7 +221,7 @@ export default function AvatarPlayer({
     const y = ((e.clientY - box.top) / box.height) * 100;
     const id = (e.target as Element).closest("[data-action]")?.getAttribute("data-action");
     const action = avatar.actions.find((a) => a.id === id);
-    const ripple = { id: ++rippleId.current, x, y, label: action && !busy.current ? shortLabel(action.label) : undefined };
+    const ripple = { id: ++rippleId.current, x, y, label: action ? shortLabel(action.label) : undefined };
     setRipples((r) => [...r, ripple]);
     setTimeout(() => setRipples((r) => r.filter((p) => p.id !== ripple.id)), 900);
     if (action) void play(action);
@@ -228,6 +261,8 @@ export default function AvatarPlayer({
           style={{ zIndex: 2 }}
         />
       )}
+
+      {urls && <canvas ref={snapRef} className="player-snap" aria-hidden />}
 
       {!urls && (
         <div className="player-loading" role="status" aria-live="polite">
