@@ -50,7 +50,7 @@ def analyze(path):
     if not r.pose_landmarks:
         raise SystemExit(f"no person found in {path}")
     p = {n: np.array([q.x, q.y]) for n, q in zip(NAMES, r.pose_landmarks[0])}
-    mask = r.segmentation_masks[0].numpy_view() > 0.5
+    mask = np.squeeze(r.segmentation_masks[0].numpy_view()) > 0.5
     rows = np.where(mask.any(axis=1))[0]
     top, sole = rows.min() / mask.shape[0], (rows.max() + 1) / mask.shape[0]
     y = lambda *k: float(np.mean([p[a][1] for a in k]))
@@ -62,7 +62,7 @@ def analyze(path):
             lv[i] = max(lv[i], lv[i - 1] + 1e-3)  # keep strictly increasing
     mid = float(np.mean([p[a][0] for a in ("lsho", "rsho", "lhip", "rhip")]))
     return {
-        "body": body, "arm": arm, "mid": mid,
+        "mask": mask, "body": body, "arm": arm, "mid": mid,
         "Sw": float(abs(p["lsho"][0] - p["rsho"][0])), "Hw": float(abs(p["lear"][0] - p["rear"][0])),
         # x of the arm / leg centre lines at each of their levels
         "armx": {s: [p[s + "sho"][0], p[s + "elb"][0], p[s + "wri"][0], (p[s + "pin"][0] + p[s + "idx"][0]) / 2] for s in "lr"},
@@ -132,6 +132,49 @@ def zones_for(a, rules):
         out[name] = [round(x0, 4), round(y0, 4), round(x1 - x0, 4), round(y1 - y0, 4)]
     return out
 
+def partition(boxes, locked, mask, margin=4):
+    """Label every pixel of the person (plus a small margin) with exactly one zone: no gaps, no overlaps.
+
+    A pixel inside one or more zone boxes goes to the locked box if there is one, else to the box it is
+    most central in. A pixel inside no box (a gap between boxes) goes to the nearest box. Returns an
+    int array: 0 = background, 1..N = index into `names` (the order of `boxes`)."""
+    import cv2
+    H, W = mask.shape
+    body = cv2.dilate(mask.astype(np.uint8), np.ones((2 * margin + 1, 2 * margin + 1), np.uint8)) > 0
+    ys, xs = np.mgrid[0:H, 0:W]
+    px, py = (xs + 0.5) / W, (ys + 0.5) / H
+    names = list(boxes)
+    cost = np.empty((len(names), H, W), np.float32)
+    for i, n in enumerate(names):
+        x, y, w, h = boxes[n]
+        cn = np.maximum(np.abs(px - (x + w / 2)) / (w / 2), np.abs(py - (y + h / 2)) / (h / 2))  # <= 1 inside the box
+        out = np.hypot(np.maximum(np.maximum(x - px, px - (x + w)), 0), np.maximum(np.maximum(y - py, py - (y + h)), 0))  # distance outside
+        # inside: most central box wins, a locked box beats everything; outside any box: nearest box
+        cost[i] = np.where(cn <= 1, cn - (10 if locked[n] else 0), 2 + out * 100)
+    label = cost.argmin(axis=0) + 1
+    label[~body] = 0
+    return label, names
+
+def preview(frame_path, boxes, locked, mask, out_path):
+    label, names = partition(boxes, locked, mask)
+    im = np.asarray(Image.open(frame_path).convert("RGB")).astype(float)
+    pal = [(230, 25, 75), (60, 180, 75), (255, 225, 25), (0, 130, 200), (245, 130, 48), (145, 30, 180), (70, 240, 240), (240, 50, 230), (210, 245, 60), (250, 190, 190), (0, 128, 128), (170, 110, 40)]
+    col = np.zeros_like(im)
+    for i, n in enumerate(names):
+        col[label == i + 1] = (0, 0, 0) if locked[n] and False else pal[i % len(pal)]
+    over = np.where((label > 0)[..., None], 0.45 * col + 0.55 * im, im)
+    # boundaries between different labels
+    edge = np.zeros(label.shape, bool)
+    edge[:, 1:] |= label[:, 1:] != label[:, :-1]
+    edge[1:, :] |= label[1:, :] != label[:-1, :]
+    over[edge] = (0, 0, 0)
+    out = Image.fromarray(over.astype(np.uint8)); d = ImageDraw.Draw(out)
+    for i, n in enumerate(names):
+        yy, xx = np.where(label == i + 1)
+        if len(xx): d.text((xx.mean() - 5, yy.mean() - 5), str(i + 1), fill=(255, 255, 255) if locked[n] else (0, 0, 0))
+    out.save(out_path)
+    return label, names
+
 def build(frames_dir):
     rules = json.load(open(os.path.join(HERE, "zone-rules.json")))
     os.makedirs(os.path.join(ROOT, "content", "zones"), exist_ok=True)
@@ -157,3 +200,4 @@ def check(frames_dir, out_dir):
 if __name__ == "__main__":
     cmd, *args = sys.argv[1:] or ["help"]
     {"calibrate": lambda: calibrate(*args), "build": lambda: build(*args), "check": lambda: check(*args)}.get(cmd, lambda: print(__doc__))()
+
