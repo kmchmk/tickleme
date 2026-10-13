@@ -1,0 +1,191 @@
+[
+ {
+  "n": 1,
+  "name": "forehead",
+  "label": "Forehead",
+  "placeholder": "01-forehead",
+  "locked": false
+ },
+ {
+  "n": 2,
+  "name": "right-cheek",
+  "label": "Right cheek",
+  "placeholder": "02-right-cheek",
+  "locked": false
+ },
+ {
+  "n": 3,
+  "name": "left-cheek",
+  "label": "Left cheek",
+  "placeholder": "03-left-cheek",
+  "locked": false
+ },
+ {
+  "n": 4,
+  "name": "neck",
+  "label": "Neck",
+  "placeholder": "05-neck",
+  "locked": false
+ },
+ {
+  "n": 5,
+  "name": "right-shoulder",
+  "label": "Right shoulder",
+  "placeholder": "06-right-shoulder",
+  "locked": false
+ },
+ {
+  "n": 6,
+  "name": "left-shoulder",
+  "label": "Left shoulder",
+  "placeholder": "07-left-shoulder",
+  "locked": false
+ },
+ {
+  "n": 7,
+  "name": "right-arm",
+  "label": "Right arm",
+  "placeholder": "12-right-forearm",
+  "locked": false
+ },
+ {
+  "n": 8,
+  "name": "left-arm",
+  "label": "Left arm",
+  "placeholder": "13-left-forearm",
+  "locked": false
+ },
+ {
+  "n": 9,
+  "name": "right-hand",
+  "label": "Right hand",
+  "placeholder": "14-right-hand",
+  "locked": false
+ },
+ {
+  "n": 10,
+  "name": "left-hand",
+  "label": "Left hand",
+  "placeholder": "15-left-hand",
+  "locked": false
+ },
+ {
+  "n": 11,
+  "name": "right-fingers",
+  "label": "Right fingers",
+  "placeholder": "14-right-hand",
+  "locked": false
+ },
+ {
+  "n": 12,
+  "name": "left-fingers",
+  "label": "Left fingers",
+  "placeholder": "15-left-hand",
+  "locked": false
+ },
+ {
+  "n": 13,
+  "name": "right-underarm",
+  "label": "Right underarm",
+  "placeholder": "16-right-underarm",
+  "locked": false
+ },
+ {
+  "n": 14,
+  "name": "left-underarm",
+  "label": "Left underarm",
+  "placeholder": "17-left-underarm",
+  "locked": false
+ },
+ {
+  "n": 15,
+  "name": "upper-chest",
+  "label": "Upper chest",
+  "placeholder": "18-upper-chest",
+  "locked": false
+ },
+ {
+  "n": 16,
+  "name": "right-ribs",
+  "label": "Right ribs",
+  "placeholder": "19-right-ribs",
+  "locked": false
+ },
+ {
+  "n": 17,
+  "name": "left-ribs",
+  "label": "Left ribs",
+  "placeholder": "20-left-ribs",
+  "locked": false
+ },
+ {
+  "n": 18,
+  "name": "stomach",
+  "label": "Stomach",
+  "placeholder": "21-belly",
+  "locked": false
+ },
+ {
+  "n": 19,
+  "name": "right-thigh",
+  "label": "Right thigh",
+  "placeholder": "25-right-thigh",
+  "locked": false
+ },
+ {
+  "n": 20,
+  "name": "left-thigh",
+  "label": "Left thigh",
+  "placeholder": "26-left-thigh",
+  "locked": false
+ },
+ {
+  "n": 21,
+  "name": "right-lower-leg",
+  "label": "Right lower leg",
+  "placeholder": "29-right-shin",
+  "locked": false
+ },
+ {
+  "n": 22,
+  "name": "left-lower-leg",
+  "label": "Left lower leg",
+  "placeholder": "30-left-shin",
+  "locked": false
+ },
+ {
+  "n": 23,
+  "name": "right-foot",
+  "label": "Right foot",
+  "placeholder": "31-right-foot",
+  "locked": false
+ },
+ {
+  "n": 24,
+  "name": "left-foot",
+  "label": "Left foot",
+  "placeholder": "32-left-foot",
+  "locked": false
+ },
+ {
+  "n": 25,
+  "name": "right-breast",
+  "label": "Right breast",
+  "placeholder": "33-right-breast",
+  "locked": true
+ },
+ {
+  "n": 26,
+  "name": "left-breast",
+  "label": "Left breast",
+  "placeholder": "34-left-breast",
+  "locked": true
+ },
+ {
+  "n": 27,
+  "name": "bikini-bottom",
+  "label": "Bikini bottom / groin",
+  "placeholder": "35-groin",
+  "locked": true
+ }
+]

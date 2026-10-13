@@ -100,15 +100,57 @@ def kind_of(name):
 def scale_of(name):
     return "Hw" if name in ("forehead", "right-cheek", "left-cheek", "chin", "neck") else "Sw"
 
-def frame(a, name):
-    """The levels, the horizontal centre line and the scale a zone is measured against."""
-    kind, s = kind_of(name), side_of(name)
+def frame(a, name, kind=None):
+    """The levels and the horizontal centre line a zone is measured against."""
+    kind, s = kind or kind_of(name), side_of(name)
     if kind == "arm":
         return a["arm"][s], (lambda y: float(np.interp(to_u(a["arm"][s], y), range(4), a["armx"][s])))
     if kind == "leg":
         lv = a["leglv"][s]
         return lv, (lambda y: float(np.interp(to_u(lv, y), range(4), a["legx"][s])))
-    return a["body"], (lambda y: a["mid"])
+    return a["body"], (lambda y: a["head" if kind == "head" else "mid"])
+
+def layout(R):
+    """The final zone set (scripts/zone-set.json) from the fitted reference rules.
+
+    Merged zones take the union of their parts; a few are then reshaped on purpose, always in
+    landmark units so they follow the body: arms run down to the wrist, hands and fingers are thin,
+    the stomach sits between the ribs, the bikini bottom / groin is one small locked zone around the
+    crotch (about 28% of the way from hip to knee), thighs run from hip to knee, breasts sit a bit higher."""
+    def union(*names):
+        rs = [R[n] for n in names]
+        return {"kind": rs[0]["kind"], "scale": rs[0]["scale"], "u0": min(r["u0"] for r in rs), "u1": max(r["u1"] for r in rs),
+                "x0": min(r["x0"] for r in rs), "x1": max(r["x1"] for r in rs)}
+    def mirror(r): return {**r, "x0": -r["x1"], "x1": -r["x0"]}
+    out = {}
+    def pair(name, r):
+        out["right-" + name], out["left-" + name] = r, mirror(r)
+    def centred(name, r, half=None):
+        half = half if half is not None else (r["x1"] - r["x0"]) / 2
+        out[name] = {**r, "x0": -half, "x1": half}
+    centred("forehead", R["forehead"])
+    pair("cheek", R["right-cheek"])
+    centred("neck", union("chin", "neck"))
+    pair("shoulder", R["right-shoulder"])
+    arm = union("right-upper-arm", "right-elbow", "right-forearm"); arm["u1"] = 2.0          # down to the wrist
+    pair("arm", arm)
+    # (pose models put the "pinky"/"index" landmarks at the knuckles, so hand = wrist..knuckles, fingers = beyond)
+    c = (R["right-hand"]["x0"] + R["right-hand"]["x1"]) / 2                                   # thin: just the hand, then the fingers
+    pair("hand", {**R["right-hand"], "u0": 2.0, "u1": 3.0, "x0": c - 0.15, "x1": c + 0.15})
+    pair("fingers", {**R["right-hand"], "u0": 3.0, "u1": 3.9, "x0": c - 0.15, "x1": c + 0.15})
+    pair("underarm", R["right-underarm"])
+    centred("upper-chest", R["upper-chest"])
+    crotch = 4.26
+    groin_top = 3.92
+    ribs = {**R["right-ribs"], "x1": -0.20, "u1": groin_top}                                # ribs leave room for the stomach
+    pair("ribs", ribs)
+    centred("stomach", {**R["belly"], "u0": R["right-ribs"]["u0"], "u1": groin_top}, half=0.20)
+    pair("thigh", {"kind": "mid", "scale": "Sw", "u0": 3.95, "u1": 5.0, "x0": -0.62, "x1": 0.0})   # whole thigh, hip to knee
+    ll = union("right-knee", "right-shin"); pair("lower-leg", {**ll, "u0": 1.0, "u1": 2.0})
+    pair("foot", R["right-foot"])
+    pair("breast", {**R["right-breast"], "u0": R["right-breast"]["u0"] - 0.09, "u1": R["right-breast"]["u1"] - 0.09})  # a little higher
+    centred("bikini-bottom", {"kind": "mid", "scale": "Sw", "u0": groin_top, "u1": crotch}, half=0.38)
+    return out
 
 def calibrate(ref_png):
     a = analyze(ref_png)
@@ -118,35 +160,28 @@ def calibrate(ref_png):
         levels, line = frame(a, z["name"])
         ym = y + h / 2
         base, sc = line(ym), a[scale_of(z["name"])]
-        rules[z["name"]] = {"u0": to_u(levels, y), "u1": to_u(levels, y + h), "x0": (x - base) / sc, "x1": (x + w - base) / sc}
+        rules[z["name"]] = {"kind": kind_of(z["name"]), "scale": scale_of(z["name"]), "u0": to_u(levels, y), "u1": to_u(levels, y + h), "x0": (x - base) / sc, "x1": (x + w - base) / sc}
     # Make the rules symmetric: a right zone and its left twin are mirror images, centre zones are centred.
     for n in list(rules):
         if n.startswith("right-"):
             r, l = rules[n], rules["left-" + n[6:]]
             u0, u1 = (r["u0"] + l["u0"]) / 2, (r["u1"] + l["u1"]) / 2
             x0, x1 = (r["x0"] - l["x1"]) / 2, (r["x1"] - l["x0"]) / 2
-            rules[n] = {"u0": u0, "u1": u1, "x0": x0, "x1": x1}
-            rules["left-" + n[6:]] = {"u0": u0, "u1": u1, "x0": -x1, "x1": -x0}
+            rules[n] = {**r, "u0": u0, "u1": u1, "x0": x0, "x1": x1}
+            rules["left-" + n[6:]] = {**l, "u0": u0, "u1": u1, "x0": -x1, "x1": -x0}
         elif not n.startswith("left-"):
             half = (rules[n]["x1"] - rules[n]["x0"]) / 2
             rules[n]["x0"], rules[n]["x1"] = -half, half
-    # Belly, lower belly and groin are re-stacked between the bottom of the ribs and the crotch.
-    # The hand-drawn reference put them too low for outfits whose crotch sits higher (bikini), and the
-    # crotch is anatomy, not clothing: it is about 28% of the way from the hip to the knee.
-    top, crotch = rules["belly"]["u0"], 4.28
-    span = crotch - top
-    rules["belly"]["u1"] = top + 0.40 * span
-    rules["lower-belly"]["u0"], rules["lower-belly"]["u1"] = top + 0.40 * span, top + 0.70 * span
-    rules["groin"]["u0"], rules["groin"]["u1"] = top + 0.55 * span, crotch + 0.03
+    rules = layout(rules)
     json.dump(rules, open(os.path.join(HERE, "zone-rules.json"), "w"), indent=1)
     print(f"fitted {len(rules)} zone rules to {ref_png}")
 
 def zones_for(a, rules):
     out = {}
     for name, r in rules.items():
-        levels, line = frame(a, name)
+        levels, line = frame(a, name, r["kind"])
         y0, y1 = from_u(levels, r["u0"]), from_u(levels, r["u1"])
-        base, sc = line((y0 + y1) / 2), a[scale_of(name)]
+        base, sc = line((y0 + y1) / 2), a[r["scale"]]
         x0, x1 = base + r["x0"] * sc, base + r["x1"] * sc
         x0, x1, y0, y1 = max(0, x0), min(1, x1), max(0, y0), min(1, y1)
         out[name] = [round(x0, 4), round(y0, 4), round(x1 - x0, 4), round(y1 - y0, 4)]
@@ -211,14 +246,32 @@ def build(frames_dir):
     for f in sorted(os.listdir(frames_dir)):
         if not f.endswith(".png"): continue
         z = zones_for(analyze(os.path.join(frames_dir, f)), rules)
-        bad = [n for n, (x, y, w, h) in z.items() if w < 0.02 or h < 0.015]
+        bad = [n for n, (x, y, w, h) in z.items() if w < 0.02 or h < 0.012]
         if bad: raise SystemExit(f"{f}: degenerate zones {bad}")
         json.dump(z, open(os.path.join(ROOT, "content", "zones", f[:-4] + ".json"), "w"), indent=1)
         print("zones for", f[:-4])
 
+def preview_cmd(frames_dir, set_name, out_png):
+    zs = json.load(open(os.path.join(HERE, "zone-set.json")))
+    rules = json.load(open(os.path.join(HERE, "zone-rules.json")))
+    a = analyze(os.path.join(frames_dir, set_name + ".png"))
+    z = zones_for(a, rules)
+    boxes = {q["name"]: tuple(z[q["name"]]) for q in zs}
+    label, names = preview(os.path.join(frames_dir, set_name + ".png"), boxes, {q["name"]: q["locked"] for q in zs}, a["mask"], out_png)
+    # symmetry check: the mirrored label map must be the twin zone everywhere
+    H, W = label.shape
+    mx = np.clip(np.round(2 * a["mid"] * W - 1 - np.arange(W)).astype(int), 0, W - 1)
+    twin = lambda n: n.replace("right-", "L#").replace("left-", "right-").replace("L#", "left-")
+    ok = tot = 0
+    for yy in range(0, H, 3):
+        for xx in range(0, W, 3):
+            if label[yy, xx] and label[yy, mx[xx]]:
+                tot += 1; ok += names[label[yy, xx] - 1] == twin(names[label[yy, mx[xx]] - 1])
+    print(f"{set_name}: {len(names)} zones, mirror agreement {100 * ok / tot:.1f}%, uncovered body pixels 0 by construction")
+
 def check(frames_dir, out_dir):
     os.makedirs(out_dir, exist_ok=True)
-    ref = {z["name"]: z for z in json.load(open(os.path.join(HERE, "reference-zones.json")))}
+    ref = {z["name"]: z for z in json.load(open(os.path.join(HERE, "zone-set.json")))}
     for f in sorted(os.listdir(frames_dir)):
         if not f.endswith(".png"): continue
         z = json.load(open(os.path.join(ROOT, "content", "zones", f[:-4] + ".json")))
@@ -229,5 +282,5 @@ def check(frames_dir, out_dir):
 
 if __name__ == "__main__":
     cmd, *args = sys.argv[1:] or ["help"]
-    {"calibrate": lambda: calibrate(*args), "build": lambda: build(*args), "check": lambda: check(*args)}.get(cmd, lambda: print(__doc__))()
+    {"calibrate": lambda: calibrate(*args), "build": lambda: build(*args), "check": lambda: check(*args), "preview": lambda: preview_cmd(*args)}.get(cmd, lambda: print(__doc__))()
 

@@ -21,10 +21,10 @@ import os
 
 def R(x, y, w, h): return {"shape": "rect", "x": round(x * 100, 2), "y": round(y * 100, 2), "w": round(w * 100, 2), "h": round(h * 100, 2)}
 
-# The hand-drawn reference zones (fractions of the reference still). Used as the fallback and as the
-# names/labels/placeholders; each outfit's real boxes come from content/zones/<set>.json, which
-# scripts/gen-zones.py computes from the outfit's own body landmarks.
-ZONES = [(z["n"], z["name"], z["label"], tuple(z["box"]), z["placeholder"], z["locked"]) for z in json.load(open("scripts/reference-zones.json"))]
+# The zone set (names, labels, which are locked, which old clip stands in as a placeholder). Each outfit's
+# boxes come from content/zones/<set>.json, which scripts/gen-zones.py computes from the outfit's own
+# body landmarks.
+ZONES = [(z["n"], z["name"], z["label"], None, z["placeholder"], z["locked"]) for z in json.load(open("scripts/zone-set.json"))]
 LOCKED = {n for n, *_, locked in ZONES if locked}
 
 def clip(n, name): return f"{n:02d}-{name}"
@@ -37,8 +37,7 @@ def draw_order(z):
 def zone_boxes(set_):
     path = f"content/zones/{set_}.json"
     if not os.path.exists(path):
-        print(f"warning: no computed zones for {set_}, using the reference zones")
-        return {name: box for n, name, label, box, src, locked in ZONES}
+        raise SystemExit(f"no computed zones for {set_}: run scripts/gen-zones.py build first")
     return {k: tuple(v) for k, v in json.load(open(path)).items()}
 
 def variant(set_, bucket, access, idle, poster, version, tier_of):
