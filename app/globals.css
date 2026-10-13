@@ -79,6 +79,8 @@ a {
     calc(20px + var(--safe-l));
   background: radial-gradient(60% 40% at 50% 0%, rgba(255, 122, 89, 0.18), transparent 70%);
   min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 .hero {
@@ -133,6 +135,7 @@ a {
 }
 
 .grid {
+  margin-block: auto !important;
   --gap: clamp(12px, 2.5vw, 24px);
   list-style: none;
   margin: 0;
@@ -1059,5 +1062,32 @@ a.card:active {
     display: block;
     text-align: left;
     margin-top: 6px;
+  }
+}
+
+/* Phones: one compact row per avatar (picture left, details right), so three avatars
+   fit on one screen and no card is left alone in a half-empty row. */
+@media (max-width: 639px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .card--avatar {
+    display: grid;
+    grid-template-columns: 38% minmax(0, 1fr);
+    grid-template-areas: "media body" "media chips";
+    align-content: center;
+  }
+  .card--avatar .card-link {
+    grid-area: media;
+  }
+  .card--avatar .card-body {
+    grid-area: body;
+    align-self: end;
+    padding: 14px 14px 4px;
+  }
+  .card--avatar .chips {
+    grid-area: chips;
+    align-self: start;
+    padding: 6px 12px 14px;
   }
 }
