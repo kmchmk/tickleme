@@ -8,3 +8,4 @@ next-env.d.ts
 .DS_Store
 public/avatars/*/*.mp4
 public/avatars/*/*.jpg
+__pycache__/
