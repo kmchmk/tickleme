@@ -1,76 +1,81 @@
 #!/usr/bin/env python3
 """Writes content/avatars/<id>.json: avatars with three variants each.
 
-Touch areas are percentages of the 480x720 frame. Sides are the subject's own
-(her right is on the screen's left): each pair is defined for the screen-left
-box and mirrored about x=50 for the other side.
+Touch zones: 35 per outfit, as fractions of the 1024x1536 reference still
+(x, y, w, h; origin top-left). The subject's right is the screen's left. All outfits
+share pose and framing, so the same zones fit every outfit. The player's frame is
+480x720 (same 2:3 ratio), so fractions map straight to percentages.
 
-Who can play what (see lib/access.ts):
-  jeans    guests; every tap location is free
-  bikini   signed-in 18+ members; the 20 standard tap locations are free, the
-           three EXTRA ones (breasts, private area) need the "more tap locations"
-           unlock (tier "taps")
-  explicit signed-in 18+ members who bought the explicit unlock (or the bundle)
+Zones 33-35 (right breast, left breast, groin) are payment-locked (tier "taps", needs the
+"more tap locations" unlock) in the jeans and bikini outfits; in the explicit outfit
+everything is covered by the explicit unlock. Where zones overlap, the locked one wins
+(it is drawn last, so it sits on top).
 
-Clips live in the Neon storage buckets (public: avatars-free, private:
-avatars-private) under avatars/<set>/. Posters are always public; the explicit
-poster must be a BLURRED teaser.
+Clips live in the Neon storage buckets (public: avatars-free, private: avatars-private)
+under avatars/<set>/<NN>-<name>.mp4. Posters are always public; the explicit poster must
+be a BLURRED teaser. PLACEHOLDER maps each zone to the older clip it was copied from
+until the real clip is generated (see scripts/placeholder-clips.mjs).
 """
 import json
 
-def R(x, y, w, h): return {"shape": "rect", "x": x, "y": y, "w": w, "h": h}
-def mirror(b): return R(round(100 - b[0] - b[2], 2), b[1], b[2], b[3])
+def R(x, y, w, h): return {"shape": "rect", "x": round(x * 100, 2), "y": round(y * 100, 2), "w": round(w * 100, 2), "h": round(h * 100, 2)}
 
-PAIRS = [  # (first clip number, name, screen-left box for the subject's right side)
-    (1, "hand", (27, 52, 8, 9)),
-    (3, "forearm", (27.5, 41, 6.5, 11)),
-    (5, "shoulder", (30, 18.5, 12, 5)),
-    (9, "underarm", (31, 24, 7, 8)),
-    (12, "ribs", (38, 32.5, 7, 8)),
-    (15, "hip", (34.5, 42, 9.5, 8.5)),
-    (17, "thigh", (34, 51, 14, 18)),
-    (19, "foot", (41, 87.5, 8, 9)),
+# (number, name, label, (x, y, w, h), placeholder source clip, locked)
+ZONES = [
+    (1, "forehead", "Forehead", (0.4297, 0.0456, 0.1416, 0.0521), "08-cheek", False),
+    (2, "right-cheek", "Right cheek", (0.4297, 0.0977, 0.0703, 0.0521), "08-cheek", False),
+    (3, "left-cheek", "Left cheek", (0.5000, 0.0977, 0.0713, 0.0521), "08-cheek", False),
+    (4, "chin", "Chin", (0.4395, 0.1497, 0.1221, 0.0293), "07-neck", False),
+    (5, "neck", "Neck", (0.4541, 0.1790, 0.0928, 0.0293), "07-neck", False),
+    (6, "right-shoulder", "Right shoulder", (0.3369, 0.2051, 0.1172, 0.0553), "05-right-shoulder", False),
+    (7, "left-shoulder", "Left shoulder", (0.5469, 0.2051, 0.1221, 0.0553), "06-left-shoulder", False),
+    (8, "right-upper-arm", "Right upper arm", (0.3271, 0.3385, 0.0732, 0.0521), "03-right-forearm", False),
+    (9, "left-upper-arm", "Left upper arm", (0.6006, 0.3385, 0.0732, 0.0521), "04-left-forearm", False),
+    (10, "right-elbow", "Right elbow", (0.3271, 0.3906, 0.0732, 0.0586), "03-right-forearm", False),
+    (11, "left-elbow", "Left elbow", (0.6006, 0.3906, 0.0732, 0.0586), "04-left-forearm", False),
+    (12, "right-forearm", "Right forearm", (0.3223, 0.4492, 0.0781, 0.0846), "03-right-forearm", False),
+    (13, "left-forearm", "Left forearm", (0.6006, 0.4492, 0.0781, 0.0846), "04-left-forearm", False),
+    (14, "right-hand", "Right hand", (0.3223, 0.5339, 0.0879, 0.0716), "01-right-hand", False),
+    (15, "left-hand", "Left hand", (0.5908, 0.5339, 0.0879, 0.0716), "02-left-hand", False),
+    (16, "right-underarm", "Right underarm", (0.3271, 0.2604, 0.0537, 0.0781), "09-right-underarm", False),
+    (17, "left-underarm", "Left underarm", (0.6201, 0.2604, 0.0537, 0.0781), "10-left-underarm", False),
+    (18, "upper-chest", "Upper chest", (0.4443, 0.2051, 0.1123, 0.0456), "14-upper-chest", False),
+    (19, "right-ribs", "Right ribs", (0.3906, 0.3451, 0.1074, 0.0716), "12-right-ribs", False),
+    (20, "left-ribs", "Left ribs", (0.5029, 0.3451, 0.1074, 0.0716), "13-left-ribs", False),
+    (21, "belly", "Belly", (0.4102, 0.4167, 0.1807, 0.0781), "11-belly", False),
+    (22, "lower-belly", "Lower belly", (0.4248, 0.4948, 0.1514, 0.0651), "11-belly", False),
+    (23, "right-hip", "Right hip", (0.3760, 0.5599, 0.0781, 0.0781), "15-right-hip", False),
+    (24, "left-hip", "Left hip", (0.5469, 0.5599, 0.0781, 0.0781), "16-left-hip", False),
+    (25, "right-thigh", "Right thigh", (0.3906, 0.6380, 0.1074, 0.1042), "17-right-thigh", False),
+    (26, "left-thigh", "Left thigh", (0.5029, 0.6380, 0.1074, 0.1042), "18-left-thigh", False),
+    (27, "right-knee", "Right knee", (0.4004, 0.7422, 0.0977, 0.0716), "17-right-thigh", False),
+    (28, "left-knee", "Left knee", (0.5029, 0.7422, 0.0977, 0.0716), "18-left-thigh", False),
+    (29, "right-shin", "Right shin", (0.4102, 0.8138, 0.0879, 0.0911), "19-right-foot", False),
+    (30, "left-shin", "Left shin", (0.5029, 0.8138, 0.0879, 0.0911), "20-left-foot", False),
+    (31, "right-foot", "Right foot", (0.4297, 0.9049, 0.0684, 0.0586), "19-right-foot", False),
+    (32, "left-foot", "Left foot", (0.5029, 0.9049, 0.0684, 0.0586), "20-left-foot", False),
+    (33, "right-breast", "Right breast", (0.3809, 0.2604, 0.1172, 0.0846), "05-right-shoulder", True),
+    (34, "left-breast", "Left breast", (0.5029, 0.2604, 0.1172, 0.0846), "06-left-shoulder", True),
+    (35, "groin", "Groin", (0.4541, 0.5599, 0.0928, 0.0716), "11-belly", True),
 ]
-CENTER = [  # (clip number, name, label, boxes)
-    (7, "neck", "Neck", [R(45.5, 16, 9, 4)]),
-    (8, "cheek", "Cheek", [R(44, 12.5, 5, 4), R(51, 12.5, 5, 4)]),
-    (11, "belly", "Belly", [R(44, 34, 12, 12)]),
-    (14, "upper-chest", "Upper chest", [R(41, 19.5, 18, 3.5)]),
-]
-# Extra tap locations that exist only in the bikini variant (paid). Clip files are
-# 21-right-breast.mp4, 22-left-breast.mp4, 23-private-area.mp4 (placeholders until
-# the real clips are generated: overwrite the same keys in the private bucket).
-EXTRAS = [  # (clip number, id suffix, label, boxes)
-    (21, "right-breast", "Right breast", [R(39, 22.5, 11, 9)]),
-    (22, "left-breast", "Left breast", [R(50, 22.5, 11, 9)]),
-    (23, "private-area", "Private area", [R(44.5, 46.5, 11, 6.5)]),
-]
-EXTRA_NUMBERS = {n for n, *_ in EXTRAS}
-def actions(extras=False):
-    out = {}
-    for n, name, box in PAIRS:
-        for i, side in ((n, "right"), (n + 1, "left")):
-            b = R(*box) if side == "right" else mirror(box)
-            out[i] = (i, f"{i:02d}-{side}-{name}", f"{side.capitalize()} {name}", b)
-    for n, name, label, boxes in CENTER:
-        out[n] = (n, f"{n:02d}-{name}", label, boxes if len(boxes) > 1 else boxes[0])
-    if extras:
-        for n, name, label, boxes in EXTRAS:
-            out[n] = (n, f"{n:02d}-{name}", label, boxes if len(boxes) > 1 else boxes[0])
-    return [out[i] for i in sorted(out)]
+LOCKED = {n for n, *_, locked in ZONES if locked}
 
-# Draw order: later entries sit on top, so small/precise areas come last.
-PRIORITY = ["thigh", "foot", "hip", "belly", "ribs", "forearm", "hand", "underarm", "shoulder", "upper-chest", "neck", "cheek", "breast", "private-area"]
-def order(a):
-    name = a[1].split("-", 1)[1]
-    return PRIORITY.index(next(k for k in PRIORITY if name.endswith(k)))
+def clip(n, name): return f"{n:02d}-{name}"
 
-def variant(set_, bucket, access, idle, poster, version, tier_of, extras=False):
-    acts = sorted(actions(extras), key=order)
+def draw_order(z):
+    # Locked zones on top; otherwise bigger zones first so small, precise ones stay tappable.
+    n, name, label, (x, y, w, h), src, locked = z
+    return (locked, -w * h)
+
+def variant(set_, bucket, access, idle, poster, version, tier_of):
+    acts = sorted(ZONES, key=draw_order)
     return {
         "set": set_, "bucket": bucket, "access": access, "idle": idle, "poster": poster,
         "aspectRatio": round(480 / 720, 4), "version": version,
-        "actions": [{"id": f, "label": l, "video": f"{f}.mp4", "region": r, "tier": tier_of(n)} for n, f, l, r in acts],
+        "actions": [
+            {"id": clip(n, name), "label": label, "video": f"{clip(n, name)}.mp4", "region": R(*box), "tier": tier_of(n)}
+            for n, name, label, box, src, locked in acts
+        ],
     }
 
 def make(id_, name, jeans, bikini, nude):
@@ -80,18 +85,21 @@ def make(id_, name, jeans, bikini, nude):
         "name": name,
         "pricing": {"taps": 0.69, "explicit": 0.69, "bundle": 0.99},   # USDC
         "variants": {
-            "jeans": variant(jeans[0], "public", "guest", "idle-jeans.mp4", "poster.jpg", jeans[1], lambda n: "free"),
+            "jeans": variant(jeans[0], "public", "guest", "idle-jeans.mp4", "poster.jpg", jeans[1], lambda n: "taps" if n in LOCKED else "free"),
             "bikini": variant(bikini[0], "private", "member", "idle-bikini.mp4", "poster.jpg", bikini[1],
-                              lambda n: "taps" if n in EXTRA_NUMBERS else "free", extras=True),
+                              lambda n: "taps" if n in LOCKED else "free"),
             "explicit": variant(nude[0], "private", "paid", "idle-nude.mp4", "web/poster.png", nude[1], lambda n: "explicit"),
         },
     }
 
 AVATARS = [
-    make("avatar-1", "Avatar 1", ("woman-in-jeans", 3), ("woman-in-bikini", 5), ("woman-in-nude", 1)),
-    make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 1), ("white-woman-in-bikini", 1), ("white-woman-in-nude", 1)),
-    make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 1), ("black-woman-in-bikini", 1), ("black-woman-in-nude", 1)),
+    make("avatar-1", "Avatar 1", ("woman-in-jeans", 4), ("woman-in-bikini", 6), ("woman-in-nude", 2)),
+    make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 2), ("white-woman-in-bikini", 2), ("white-woman-in-nude", 2)),
+    make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 2), ("black-woman-in-bikini", 2), ("black-woman-in-nude", 2)),
 ]
 for avatar in AVATARS:
     open(f"content/avatars/{avatar['id']}.json", "w").write(json.dumps(avatar, indent=2) + "\n")
     print(avatar["id"], {k: (len(v["actions"]), sum(a["tier"] == "free" for a in v["actions"])) for k, v in avatar["variants"].items()}, "(actions, free)")
+
+# Which older clip stands in for each zone until its real clip exists (read by scripts/placeholder-clips.mjs).
+open("content/placeholder-clips.json", "w").write(json.dumps({clip(n, name): src for n, name, label, box, src, locked in ZONES}, indent=2) + "\n")

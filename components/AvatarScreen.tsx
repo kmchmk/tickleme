@@ -189,7 +189,14 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
           {gate === "purchase" && <PaywallModal avatar={avatar} need="explicit" onClose={dismissGate} onPaid={() => void refresh()} />}
         </>
       )}
-      {modal?.type === "paywall" && <PaywallModal avatar={avatar} need={modal.need} onClose={() => setModal(null)} onPaid={() => void refresh()} />}
+      {modal?.type === "paywall" &&
+        (!viewer?.signedIn ? (
+          <SignInModal why="Sign in to unlock more touch spots." onClose={() => setModal(null)} />
+        ) : !viewer.ageConfirmed ? (
+          <AgeModal mention="The extra touch spots" onConfirmed={() => void refresh()} onClose={() => setModal(null)} />
+        ) : (
+          <PaywallModal avatar={avatar} need={modal.need} onClose={() => setModal(null)} onPaid={() => void refresh()} />
+        ))}
     </main>
   );
 }

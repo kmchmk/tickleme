@@ -28,12 +28,7 @@ export default function AvatarCard({ avatar }: { avatar: AvatarSummary }) {
   const gate = variantGate(avatar.id, { access: v.access }, viewer ?? GUEST);
   const open = gate.ok;
 
-  const caption =
-    selected === "jeans"
-      ? `${v.total} touch spots`
-      : v.free === v.total
-        ? `${v.total} touch spots`
-        : `${v.free} free · ${v.total - v.free} to unlock`;
+  const caption = v.free === v.total ? `${v.total} touch spots` : `${v.free} free · ${v.total - v.free} to unlock`;
 
   return (
     <div className="card card--avatar">
