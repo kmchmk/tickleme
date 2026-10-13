@@ -1,9 +1,10 @@
 import avatar1 from "@/content/avatars/avatar-1.json";
 import avatar2 from "@/content/avatars/avatar-2.json";
+import avatar3 from "@/content/avatars/avatar-3.json";
 import { PUBLIC_BASE } from "./config";
 import type { AvatarDef, VariantAccess, VariantDef, VariantKey } from "./types";
 
-const avatars = [avatar1, avatar2] as unknown as AvatarDef[];
+const avatars = [avatar1, avatar2, avatar3] as unknown as AvatarDef[];
 
 export const getAvatars = () => avatars;
 export const getAvatar = (id: string) => avatars.find((a) => a.id === id);

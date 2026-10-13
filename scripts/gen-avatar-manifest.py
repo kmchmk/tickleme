@@ -90,6 +90,7 @@ def make(id_, name, jeans, bikini, nude):
 AVATARS = [
     make("avatar-1", "Avatar 1", ("woman-in-jeans", 3), ("woman-in-bikini", 5), ("woman-in-nude", 1)),
     make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 1), ("white-woman-in-bikini", 1), ("white-woman-in-nude", 1)),
+    make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 1), ("black-woman-in-bikini", 1), ("black-woman-in-nude", 1)),
 ]
 for avatar in AVATARS:
     open(f"content/avatars/{avatar['id']}.json", "w").write(json.dumps(avatar, indent=2) + "\n")
