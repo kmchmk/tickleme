@@ -40,12 +40,16 @@ const regionPath = (region: Region | Region[]) =>
     .join("");
 
 
-/** Centre of a region in frame percent, used for hint dots. */
+/** Centre of a zone in frame percent (area-weighted over its rectangles). */
 const regionCenter = (region: Region | Region[]): [number, number] => {
-  const r = [region].flat()[0];
-  if (r.shape === "rect") return [r.x + r.w / 2, r.y + r.h / 2];
-  const n = r.points.length;
-  return [r.points.reduce((a, p) => a + p[0], 0) / n, r.points.reduce((a, p) => a + p[1], 0) / n];
+  let sx = 0, sy = 0, sa = 0;
+  for (const r of [region].flat()) {
+    if (r.shape !== "rect") continue;
+    sx += (r.x + r.w / 2) * r.w * r.h;
+    sy += (r.y + r.h / 2) * r.w * r.h;
+    sa += r.w * r.h;
+  }
+  return [sx / sa, sy / sa];
 };
 
 /** "Kick (left leg)" -> "Kick" */
@@ -303,16 +307,14 @@ export default function AvatarPlayer({
           aria-label={`Touch ${manifest.name}`}
         >
           {manifest.actions.map((a) => (
-            <path
-              key={a.id}
-              data-action={a.id}
-              d={regionPath(a.region)}
-              className={`hit ${showHints || debug ? "hit--shown" : ""} ${a.locked ? "hit--locked" : ""}`}
-              vectorEffect="non-scaling-stroke"
-            >
+            <path key={a.id} data-action={a.id} d={regionPath(a.region)} className="hit" shapeRendering="crispEdges">
               <title>{a.label}</title>
             </path>
           ))}
+          {(showHints || debug) &&
+            manifest.actions.map((a) => (
+              <path key={`o-${a.id}`} d={a.outline} className={`hit-outline ${a.locked ? "hit-outline--locked" : ""}`} vectorEffect="non-scaling-stroke" />
+            ))}
         </svg>
       )}
 

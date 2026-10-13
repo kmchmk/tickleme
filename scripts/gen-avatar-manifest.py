@@ -19,7 +19,6 @@ until the real clip is generated (see scripts/placeholder-clips.mjs).
 import json
 import os
 
-def R(x, y, w, h): return {"shape": "rect", "x": round(x * 100, 2), "y": round(y * 100, 2), "w": round(w * 100, 2), "h": round(h * 100, 2)}
 
 # The zone set (names, labels, which are locked, which old clip stands in as a placeholder). Each outfit's
 # boxes come from content/zones/<set>.json, which scripts/gen-zones.py computes from the outfit's own
@@ -29,26 +28,22 @@ LOCKED = {n for n, *_, locked in ZONES if locked}
 
 def clip(n, name): return f"{n:02d}-{name}"
 
-def draw_order(z):
-    # Locked zones on top; otherwise bigger zones first so small, precise ones stay tappable.
-    n, name, label, (x, y, w, h), src, locked = z
-    return (locked, -w * h)
-
-def zone_boxes(set_):
+def zone_data(set_):
     path = f"content/zones/{set_}.json"
     if not os.path.exists(path):
         raise SystemExit(f"no computed zones for {set_}: run scripts/gen-zones.py build first")
-    return {k: tuple(v) for k, v in json.load(open(path)).items()}
+    return json.load(open(path))
 
 def variant(set_, bucket, access, idle, poster, version, tier_of):
-    boxes = zone_boxes(set_)
-    acts = sorted([(n, name, label, boxes[name], src, locked) for n, name, label, box, src, locked in ZONES], key=draw_order)
+    zones = zone_data(set_)
     return {
         "set": set_, "bucket": bucket, "access": access, "idle": idle, "poster": poster,
         "aspectRatio": round(480 / 720, 4), "version": version,
         "actions": [
-            {"id": clip(n, name), "label": label, "video": f"{clip(n, name)}.mp4", "region": R(*box), "tier": tier_of(n)}
-            for n, name, label, box, src, locked in acts
+            {"id": clip(n, name), "label": label, "video": f"{clip(n, name)}.mp4",
+             "region": [{"shape": "rect", "x": x, "y": y, "w": w, "h": h} for x, y, w, h in zones[name]["rects"]],
+             "outline": zones[name]["outline"], "tier": tier_of(n)}
+            for n, name, label, box, src, locked in ZONES
         ],
     }
 
@@ -67,9 +62,9 @@ def make(id_, name, jeans, bikini, nude):
     }
 
 AVATARS = [
-    make("avatar-1", "Avatar 1", ("woman-in-jeans", 5), ("woman-in-bikini", 7), ("woman-in-nude", 3)),
-    make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 3), ("white-woman-in-bikini", 3), ("white-woman-in-nude", 3)),
-    make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 3), ("black-woman-in-bikini", 3), ("black-woman-in-nude", 3)),
+    make("avatar-1", "Avatar 1", ("woman-in-jeans", 6), ("woman-in-bikini", 8), ("woman-in-nude", 4)),
+    make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 4), ("white-woman-in-bikini", 4), ("white-woman-in-nude", 4)),
+    make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 4), ("black-woman-in-bikini", 4), ("black-woman-in-nude", 4)),
 ]
 for avatar in AVATARS:
     open(f"content/avatars/{avatar['id']}.json", "w").write(json.dumps(avatar, indent=2) + "\n")

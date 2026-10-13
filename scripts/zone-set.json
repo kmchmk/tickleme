@@ -71,118 +71,104 @@
  },
  {
   "n": 11,
-  "name": "right-fingers",
-  "label": "Right fingers",
-  "placeholder": "14-right-hand",
-  "locked": false
- },
- {
-  "n": 12,
-  "name": "left-fingers",
-  "label": "Left fingers",
-  "placeholder": "15-left-hand",
-  "locked": false
- },
- {
-  "n": 13,
   "name": "right-underarm",
   "label": "Right underarm",
   "placeholder": "16-right-underarm",
   "locked": false
  },
  {
-  "n": 14,
+  "n": 12,
   "name": "left-underarm",
   "label": "Left underarm",
   "placeholder": "17-left-underarm",
   "locked": false
  },
  {
-  "n": 15,
+  "n": 13,
   "name": "upper-chest",
   "label": "Upper chest",
   "placeholder": "18-upper-chest",
   "locked": false
  },
  {
-  "n": 16,
+  "n": 14,
   "name": "right-ribs",
   "label": "Right ribs",
   "placeholder": "19-right-ribs",
   "locked": false
  },
  {
-  "n": 17,
+  "n": 15,
   "name": "left-ribs",
   "label": "Left ribs",
   "placeholder": "20-left-ribs",
   "locked": false
  },
  {
-  "n": 18,
+  "n": 16,
   "name": "stomach",
   "label": "Stomach",
   "placeholder": "21-belly",
   "locked": false
  },
  {
-  "n": 19,
+  "n": 17,
   "name": "right-thigh",
   "label": "Right thigh",
   "placeholder": "25-right-thigh",
   "locked": false
  },
  {
-  "n": 20,
+  "n": 18,
   "name": "left-thigh",
   "label": "Left thigh",
   "placeholder": "26-left-thigh",
   "locked": false
  },
  {
-  "n": 21,
+  "n": 19,
   "name": "right-lower-leg",
   "label": "Right lower leg",
   "placeholder": "29-right-shin",
   "locked": false
  },
  {
-  "n": 22,
+  "n": 20,
   "name": "left-lower-leg",
   "label": "Left lower leg",
   "placeholder": "30-left-shin",
   "locked": false
  },
  {
-  "n": 23,
+  "n": 21,
   "name": "right-foot",
   "label": "Right foot",
   "placeholder": "31-right-foot",
   "locked": false
  },
  {
-  "n": 24,
+  "n": 22,
   "name": "left-foot",
   "label": "Left foot",
   "placeholder": "32-left-foot",
   "locked": false
  },
  {
-  "n": 25,
+  "n": 23,
   "name": "right-breast",
   "label": "Right breast",
   "placeholder": "33-right-breast",
   "locked": true
  },
  {
-  "n": 26,
+  "n": 24,
   "name": "left-breast",
   "label": "Left breast",
   "placeholder": "34-left-breast",
   "locked": true
  },
  {
-  "n": 27,
+  "n": 25,
   "name": "bikini-bottom",
   "label": "Bikini bottom / groin",
   "placeholder": "35-groin",

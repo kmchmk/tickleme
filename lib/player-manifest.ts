@@ -25,6 +25,7 @@ export async function buildPlayerManifest(
         id: a.id,
         label: a.label,
         region: a.region,
+        outline: a.outline,
         key: `${variant.bucket}:${objectKey(variant, a.video)}`,
         ...(locked ? { locked } : { url: await fileUrl(variant, a.video) }),
       };

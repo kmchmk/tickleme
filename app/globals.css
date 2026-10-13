@@ -460,17 +460,24 @@ a.card:active {
   cursor: pointer;
 }
 
+.hit-outline {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+.hit-outline--locked {
+  stroke: var(--accent);
+  stroke-width: 1.8;
+}
+
 .hit {
   fill: rgba(255, 255, 255, 0);
   stroke: transparent;
   stroke-width: 1.5;
   transition: fill 0.25s ease, stroke 0.25s ease;
-}
-
-.hit--shown {
-  fill: rgba(255, 255, 255, 0.12);
-  stroke: rgba(255, 255, 255, 0.9);
-  stroke-dasharray: 4 3;
 }
 
 .hint-dots,
@@ -752,10 +759,6 @@ a.card:active {
 
 /* ---------- Locked tap locations ---------- */
 
-.hit--shown.hit--locked {
-  fill: rgba(255, 122, 89, 0.22);
-  stroke: var(--accent);
-}
 
 .lock-dot {
   position: absolute;

@@ -134,10 +134,9 @@ def layout(R):
     pair("shoulder", R["right-shoulder"])
     arm = union("right-upper-arm", "right-elbow", "right-forearm"); arm["u1"] = 2.0          # down to the wrist
     pair("arm", arm)
-    # (pose models put the "pinky"/"index" landmarks at the knuckles, so hand = wrist..knuckles, fingers = beyond)
+    # (thin; the pose model's pinky/index landmarks are the knuckles, so wrist..u=3.9 is the hand with its fingers)
     c = (R["right-hand"]["x0"] + R["right-hand"]["x1"]) / 2                                   # thin: just the hand, then the fingers
-    pair("hand", {**R["right-hand"], "u0": 2.0, "u1": 3.0, "x0": c - 0.15, "x1": c + 0.15})
-    pair("fingers", {**R["right-hand"], "u0": 3.0, "u1": 3.9, "x0": c - 0.15, "x1": c + 0.15})
+    pair("hand", {**R["right-hand"], "u0": 2.0, "u1": 3.9, "x0": c - 0.15, "x1": c + 0.15})
     pair("underarm", R["right-underarm"])
     centred("upper-chest", R["upper-chest"])
     crotch = 4.26
@@ -187,100 +186,170 @@ def zones_for(a, rules):
         out[name] = [round(x0, 4), round(y0, 4), round(x1 - x0, 4), round(y1 - y0, 4)]
     return out
 
-def partition(boxes, locked, mask, margin=4, groups=None):
-    """Label every pixel of the person (plus a small margin) with exactly one zone: no gaps, no overlaps.
+CELL_X, CELL_Y = 1 / 96, 1 / 144   # the touch map is a grid of ~5px cells (of a 480x720 frame)
 
-    A pixel inside one or more zone boxes goes to the locked box if there is one, else to the box it is
-    most central in. A pixel inside no box (a gap between boxes) goes to the nearest box. Returns an
-    int array: 0 = background, 1..N = index into `names` (the order of `boxes`)."""
+def zone_set():
+    return json.load(open(os.path.join(HERE, "zone-set.json")))
+
+def twin(n):
+    return n.replace("right-", "L#").replace("left-", "right-").replace("L#", "left-")
+
+def grid_zones(a, boxes, locked):
+    """Cut the person into touch zones: every body cell belongs to exactly one zone (no gaps, no overlaps).
+
+    The grid is anchored on the body's midline, and the screen-right half is the exact mirror of the
+    screen-left half, so the result is symmetric. A cell inside one or more zone boxes goes to the locked
+    box if there is one, else to the box it is most central in; a cell inside no box goes to the nearest
+    box. Cells further than a small margin from the person's silhouette are background (no zone).
+
+    Returns (names, xs, ys, grid): xs/ys are the cell edges (fractions of the picture), grid[j][i] is
+    the 1-based zone index of the cell in row j, column i (0 = background)."""
     import cv2
-    H, W = mask.shape
-    body = cv2.dilate(mask.astype(np.uint8), np.ones((2 * margin + 1, 2 * margin + 1), np.uint8)) > 0
-    ys, xs = np.mgrid[0:H, 0:W]
-    px, py = (xs + 0.5) / W, (ys + 0.5) / H
-    names = list(boxes)
-    cost = np.empty((len(names), H, W), np.float32)
-    member = {n: n for n in names}
-    for g, ms in (groups or {}).items():  # merged zones: a pixel belongs to the group of the box it fits best
-        for m in ms: member[m] = g
-    for i, n in enumerate(names):
-        x, y, w, h = boxes[n]
-        cn = np.maximum(np.abs(px - (x + w / 2)) / (w / 2), np.abs(py - (y + h / 2)) / (h / 2))  # <= 1 inside the box
-        out = np.hypot(np.maximum(np.maximum(x - px, px - (x + w)), 0), np.maximum(np.maximum(y - py, py - (y + h)), 0))  # distance outside
-        # inside: most central box wins, a locked box beats everything; outside any box: nearest box
-        cost[i] = np.where(cn <= 1, cn - (10 if locked[n] else 0), 2 + out * 100)
-    if groups:
-        gnames = list(dict.fromkeys(member[n] for n in names))
-        gcost = np.stack([np.min([cost[i] for i, n in enumerate(names) if member[n] == g], axis=0) for g in gnames])
-        label = gcost.argmin(axis=0) + 1
-        names = gnames
-    else:
-        label = cost.argmin(axis=0) + 1
-    label[~body] = 0
-    return label, names
+    mask = a["mask"]; H, W = mask.shape
+    body = cv2.dilate(mask.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
+    cx = a["mid"]
+    n = int(np.ceil(max(cx, 1 - cx) / CELL_X))
+    edges = cx + CELL_X * np.arange(-n, n + 1)                 # column edges; the midline is an edge
+    ys = np.arange(0, int(np.ceil(1 / CELL_Y)) + 1) * CELL_Y
+    ycen = np.minimum((ys[:-1] + ys[1:]) / 2, 0.9999)
+    names = [z["name"] for z in zone_set()]
+    idx = {nm: i for i, nm in enumerate(names)}
+    def on_body(x, y):                                          # symmetric silhouette: either side counts
+        xs = np.clip(((np.array([x, 2 * cx - x])) * W).astype(int), 0, W - 1)
+        return any(body[min(int(y * H), H - 1), xi] for xi in xs)
+    # screen-left half (columns left of the midline): decide, then mirror
+    grid = np.zeros((len(ycen), 2 * n), int)
+    for i in range(n):                                          # i = distance from the midline, in cells
+        x = cx - (i + 0.5) * CELL_X
+        for j, y in enumerate(ycen):
+            if x < 0 or not on_body(x, y):
+                continue
+            best, bi = 1e9, 0
+            for nm, (bx, by, bw, bh) in boxes.items():
+                cn = max(abs(x - (bx + bw / 2)) / (bw / 2), abs(y - (by + bh / 2)) / (bh / 2))
+                if cn <= 1:
+                    c = cn - (10 if locked[nm] else 0)
+                else:
+                    c = 2 + 100 * np.hypot(max(bx - x, x - (bx + bw), 0), max(by - y, y - (by + bh), 0))
+                if c < best: best, bi = c, idx[nm] + 1
+            grid[j, n - 1 - i] = bi
+            grid[j, n + i] = idx[twin(names[bi - 1])] + 1
+    return names, edges, ys, grid
 
-def preview(frame_path, boxes, locked, mask, out_path, groups=None):
-    label, names = partition(boxes, locked, mask, groups=groups)
-    locked = {**locked, **{g: any(locked[m] for m in ms) for g, ms in (groups or {}).items()}}
-    im = np.asarray(Image.open(frame_path).convert("RGB")).astype(float)
-    pal = [(230, 25, 75), (60, 180, 75), (255, 225, 25), (0, 130, 200), (245, 130, 48), (145, 30, 180), (70, 240, 240), (240, 50, 230), (210, 245, 60), (250, 190, 190), (0, 128, 128), (170, 110, 40)]
-    col = np.zeros_like(im)
-    for i, n in enumerate(names):
-        col[label == i + 1] = (0, 0, 0) if locked[n] and False else pal[i % len(pal)]
-    over = np.where((label > 0)[..., None], 0.45 * col + 0.55 * im, im)
-    # boundaries between different labels
-    edge = np.zeros(label.shape, bool)
-    edge[:, 1:] |= label[:, 1:] != label[:, :-1]
-    edge[1:, :] |= label[1:, :] != label[:-1, :]
-    over[edge] = (0, 0, 0)
-    out = Image.fromarray(over.astype(np.uint8)); d = ImageDraw.Draw(out)
-    for i, n in enumerate(names):
-        yy, xx = np.where(label == i + 1)
-        if len(xx): d.text((xx.mean() - 5, yy.mean() - 5), str(i + 1), fill=(255, 255, 255) if locked[n] else (0, 0, 0))
-    out.save(out_path)
-    return label, names
+def rects_of(grid, edges, ys, k):
+    """Exact tiling of zone k's cells by rectangles (row runs, merged downwards when identical)."""
+    open_runs, out = {}, []
+    def flush(keep):
+        for key in [q for q in open_runs if q not in keep]:
+            (i0, i1), j0 = key, open_runs.pop(key)
+            out.append((edges[i0], ys[j0], edges[i1] - edges[i0], ys[flush.j] - ys[j0]))
+    for j in range(len(grid) + 1):
+        runs = set()
+        if j < len(grid):
+            row = grid[j] == k; i = 0
+            while i < len(row):
+                if row[i]:
+                    i0 = i
+                    while i < len(row) and row[i]: i += 1
+                    runs.add((i0, i))
+                else: i += 1
+        flush.j = j
+        flush(runs)
+        for r in runs: open_runs.setdefault(r, j)
+    return out
+
+def outline_of(grid, edges, ys, k):
+    """The zone's border (edges against other zones or background) as merged line segments."""
+    segs = {"h": {}, "v": {}}
+    Hn, Wn = grid.shape
+    cell = lambda j, i: grid[j, i] if 0 <= j < Hn and 0 <= i < Wn else 0
+    for j in range(Hn):
+        for i in range(Wn):
+            if grid[j, i] != k: continue
+            if cell(j - 1, i) != k: segs["h"].setdefault(j, []).append(i)
+            if cell(j + 1, i) != k: segs["h"].setdefault(j + 1, []).append(i)
+            if cell(j, i - 1) != k: segs["v"].setdefault(i, []).append(j)
+            if cell(j, i + 1) != k: segs["v"].setdefault(i + 1, []).append(j)
+    d = []
+    for j, cs in segs["h"].items():
+        cs.sort(); s0 = prev = cs[0]
+        for c in cs[1:] + [None]:
+            if c is None or c != prev + 1:
+                d.append(f"M{edges[s0] * 100:.2f},{ys[j] * 100:.2f}H{edges[prev + 1] * 100:.2f}")
+                if c is not None: s0 = c
+            prev = c if c is not None else prev
+    for i, rs in segs["v"].items():
+        rs.sort(); s0 = prev = rs[0]
+        for c in rs[1:] + [None]:
+            if c is None or c != prev + 1:
+                d.append(f"M{edges[i] * 100:.2f},{ys[s0] * 100:.2f}V{ys[prev + 1] * 100:.2f}")
+                if c is not None: s0 = c
+            prev = c if c is not None else prev
+    return "".join(d)
+
+def verify(names, edges, ys, grid):
+    """Rasterise the rectangles back: each body cell must be covered exactly once, background never."""
+    cover = np.zeros(grid.shape, int)
+    for k in range(1, len(names) + 1):
+        for (x, y, w, h) in rects_of(grid, edges, ys, k):
+            i0, i1 = np.searchsorted(edges, [x - 1e-9, x + w - 1e-9]); j0, j1 = np.searchsorted(ys, [y - 1e-9, y + h - 1e-9])
+            cover[j0:j1, i0:i1] += 1
+            assert (grid[j0:j1, i0:i1] == k).all(), f"rect of {names[k - 1]} covers another zone"
+    assert ((cover == 1) == (grid > 0)).all() and cover.max() <= 1, "gaps or overlaps"
+    assert all((grid == k).any() for k in range(1, len(names) + 1)), "a zone vanished"
+    mirror = grid[:, ::-1]
+    assert all(g == 0 and m == 0 or names[g - 1] == twin(names[m - 1]) for g, m in zip(grid.ravel(), mirror.ravel())), "not symmetric"
+
+def compute(frame_path, rules):
+    a = analyze(frame_path)
+    z = zones_for(a, rules)
+    zs = zone_set()
+    boxes = {q["name"]: tuple(z[q["name"]]) for q in zs}
+    names, edges, ys, grid = grid_zones(a, boxes, {q["name"]: q["locked"] for q in zs})
+    verify(names, edges, ys, grid)
+    return names, edges, ys, grid
 
 def build(frames_dir):
     rules = json.load(open(os.path.join(HERE, "zone-rules.json")))
     os.makedirs(os.path.join(ROOT, "content", "zones"), exist_ok=True)
     for f in sorted(os.listdir(frames_dir)):
         if not f.endswith(".png"): continue
-        z = zones_for(analyze(os.path.join(frames_dir, f)), rules)
-        bad = [n for n, (x, y, w, h) in z.items() if w < 0.02 or h < 0.012]
-        if bad: raise SystemExit(f"{f}: degenerate zones {bad}")
-        json.dump(z, open(os.path.join(ROOT, "content", "zones", f[:-4] + ".json"), "w"), indent=1)
-        print("zones for", f[:-4])
+        names, edges, ys, grid = compute(os.path.join(frames_dir, f), rules)
+        out = {}
+        for k, nm in enumerate(names, 1):
+            rs = rects_of(grid, edges, ys, k)
+            out[nm] = {"rects": [[round(x * 100, 3), round(y * 100, 3), round(w * 100, 3), round(h * 100, 3)] for x, y, w, h in rs], "outline": outline_of(grid, edges, ys, k)}
+        json.dump(out, open(os.path.join(ROOT, "content", "zones", f[:-4] + ".json"), "w"), separators=(",", ":"))
+        print(f"zones for {f[:-4]}: {len(names)} zones, {sum(len(v['rects']) for v in out.values())} rects, verified (no gaps, no overlaps, symmetric)")
 
 def preview_cmd(frames_dir, set_name, out_png):
-    zs = json.load(open(os.path.join(HERE, "zone-set.json")))
-    rules = json.load(open(os.path.join(HERE, "zone-rules.json")))
-    a = analyze(os.path.join(frames_dir, set_name + ".png"))
-    z = zones_for(a, rules)
-    boxes = {q["name"]: tuple(z[q["name"]]) for q in zs}
-    label, names = preview(os.path.join(frames_dir, set_name + ".png"), boxes, {q["name"]: q["locked"] for q in zs}, a["mask"], out_png)
-    # symmetry check: the mirrored label map must be the twin zone everywhere
-    H, W = label.shape
-    mx = np.clip(np.round(2 * a["mid"] * W - 1 - np.arange(W)).astype(int), 0, W - 1)
-    twin = lambda n: n.replace("right-", "L#").replace("left-", "right-").replace("L#", "left-")
-    ok = tot = 0
-    for yy in range(0, H, 3):
-        for xx in range(0, W, 3):
-            if label[yy, xx] and label[yy, mx[xx]]:
-                tot += 1; ok += names[label[yy, xx] - 1] == twin(names[label[yy, mx[xx]] - 1])
-    print(f"{set_name}: {len(names)} zones, mirror agreement {100 * ok / tot:.1f}%, uncovered body pixels 0 by construction")
+    names, edges, ys, grid = compute(os.path.join(frames_dir, set_name + ".png"), json.load(open(os.path.join(HERE, "zone-rules.json"))))
+    locked = {q["name"]: q["locked"] for q in zone_set()}
+    im = Image.open(os.path.join(frames_dir, set_name + ".png")).convert("RGB"); W, H = im.size
+    pal = [(230, 25, 75), (60, 180, 75), (255, 225, 25), (0, 130, 200), (245, 130, 48), (145, 30, 180), (70, 240, 240), (240, 50, 230), (210, 245, 60), (250, 190, 190), (0, 128, 128), (170, 110, 40)]
+    ov = Image.new("RGBA", im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+    for j in range(grid.shape[0]):
+        for i in range(grid.shape[1]):
+            if grid[j, i]:
+                d.rectangle([edges[i] * W, ys[j] * H, edges[i + 1] * W - 1, ys[j + 1] * H - 1], fill=pal[(grid[j, i] - 1) % len(pal)] + (115,))
+    im = Image.alpha_composite(im.convert("RGBA"), ov); d = ImageDraw.Draw(im)
+    for k, nm in enumerate(names, 1):
+        for seg in outline_of(grid, edges, ys, k).split("M")[1:]:
+            a_, b_ = (seg.split("H") if "H" in seg else seg.split("V"))
+            x0, y0 = [float(t) / 100 for t in a_.split(",")]
+            x1, y1 = (float(b_) / 100, y0) if "H" in seg else (x0, float(b_) / 100)
+            d.line([x0 * W, y0 * H, x1 * W, y1 * H], fill=(0, 0, 0, 255), width=1)
+        yy, xx = np.where(grid == k)
+        cxp = float(np.mean((edges[xx] + edges[xx + 1]) / 2)) * W; cyp = float(np.mean((ys[yy] + ys[yy + 1]) / 2)) * H
+        d.text((cxp - 5, cyp - 5), str(k), fill=(255, 255, 255, 255) if locked[nm] else (0, 0, 0, 255))
+    im.convert("RGB").save(out_png)
+    print(f"{set_name}: {len(names)} zones, verified (no gaps, no overlaps, symmetric)")
 
 def check(frames_dir, out_dir):
     os.makedirs(out_dir, exist_ok=True)
-    ref = {z["name"]: z for z in json.load(open(os.path.join(HERE, "zone-set.json")))}
     for f in sorted(os.listdir(frames_dir)):
-        if not f.endswith(".png"): continue
-        z = json.load(open(os.path.join(ROOT, "content", "zones", f[:-4] + ".json")))
-        im = Image.open(os.path.join(frames_dir, f)).convert("RGB"); W, H = im.size; d = ImageDraw.Draw(im)
-        for n, (x, y, w, h) in z.items():
-            d.rectangle([x * W, y * H, (x + w) * W, (y + h) * H], outline=(220, 30, 30) if ref[n]["locked"] else (20, 140, 40), width=2)
-        im.save(os.path.join(out_dir, f))
+        if f.endswith(".png"): preview_cmd(frames_dir, f[:-4], os.path.join(out_dir, f))
 
 if __name__ == "__main__":
     cmd, *args = sys.argv[1:] or ["help"]
     {"calibrate": lambda: calibrate(*args), "build": lambda: build(*args), "check": lambda: check(*args), "preview": lambda: preview_cmd(*args)}.get(cmd, lambda: print(__doc__))()
-

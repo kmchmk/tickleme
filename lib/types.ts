@@ -26,6 +26,8 @@ export interface ActionDef {
   video: string;
   /** One or more areas that trigger this clip (e.g. both ears). */
   region: Region | Region[];
+  /** The zone's border as SVG path data (percent units); drawn dashed when touch spots are shown. */
+  outline: string;
   tier: Tier;
 }
 
@@ -60,6 +62,7 @@ export interface PlayerAction {
   id: string;
   label: string;
   region: Region | Region[];
+  outline: string;
   /** Absent while locked: the server never sends a clip the viewer may not play. */
   url?: string;
   /** Stable cache key (the URL is signed and changes every request). */
