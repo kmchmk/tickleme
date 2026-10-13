@@ -73,17 +73,24 @@ a {
 /* ---------- Home ---------- */
 
 .home {
-  max-width: 1100px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: calc(28px + var(--safe-t)) calc(20px + var(--safe-r)) calc(28px + var(--safe-b))
+  padding: calc(20px + var(--safe-t)) calc(20px + var(--safe-r)) calc(28px + var(--safe-b))
     calc(20px + var(--safe-l));
   background: radial-gradient(60% 40% at 50% 0%, rgba(255, 122, 89, 0.18), transparent 70%);
   min-height: 100dvh;
 }
 
 .hero {
-  text-align: center;
-  padding: clamp(16px, 6vw, 56px) 0 clamp(24px, 6vw, 48px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(4px, 2vw, 16px) 0 clamp(16px, 3vw, 28px);
+}
+
+.hero-text {
+  min-width: 0;
 }
 
 .hero-badge {
@@ -97,9 +104,9 @@ a {
 }
 
 .hero-title {
-  margin: 16px 0 10px;
-  font-size: clamp(44px, 12vw, 88px);
-  line-height: 0.95;
+  margin: 0 0 6px;
+  font-size: clamp(34px, 6vw, 56px);
+  line-height: 1;
   letter-spacing: -0.03em;
 }
 
@@ -111,11 +118,11 @@ a {
 }
 
 .hero-sub {
-  margin: 0 auto;
-  max-width: 34ch;
+  margin: 0;
+  max-width: 44ch;
   color: var(--muted);
-  font-size: clamp(16px, 2.2vw, 19px);
-  line-height: 1.5;
+  font-size: clamp(14px, 2vw, 17px);
+  line-height: 1.45;
 }
 
 .section-title {
@@ -126,19 +133,25 @@ a {
 }
 
 .grid {
-  --gap: clamp(12px, 2.5vw, 20px);
+  --gap: clamp(12px, 2.5vw, 24px);
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--gap);
 }
 
-/* Two per row on narrow screens, up to 230px wide cards on larger ones. */
-.grid > li {
-  width: min(230px, calc((100% - var(--gap)) / 2));
+/* 2 per row on phones, 3 from tablet width; cards grow to fill the container. */
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
 }
 
 .card {
@@ -229,7 +242,7 @@ a.card:active {
 }
 
 .home-footer {
-  margin-top: 40px;
+  margin-top: 28px;
   text-align: center;
   color: var(--muted);
   font-size: 13px;
@@ -269,6 +282,7 @@ a.card:active {
   height: 100dvh;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "bar" "tabs" "stage" "dock";
   padding: var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l);
   overflow: hidden;
   overscroll-behavior: none;
@@ -287,6 +301,7 @@ a.card:active {
 }
 
 .screen-bar {
+  grid-area: bar;
   display: grid;
   grid-template-columns: 44px 1fr auto;
   align-items: center;
@@ -343,6 +358,7 @@ a.card:active {
 /* The stage is a size container: the frame is the largest box with the avatar's
    aspect ratio that fits, whatever the screen shape (portrait, landscape, tablet). */
 .stage {
+  grid-area: stage;
   container-type: size;
   display: grid;
   place-items: center;
@@ -368,18 +384,6 @@ a.card:active {
   -webkit-touch-callout: none;
 }
 
-.screen-tip {
-  margin: 0;
-  padding: 8px 16px 14px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 14px;
-  transition: opacity 0.4s ease;
-}
-
-.screen-tip--hidden {
-  opacity: 0;
-}
 
 /* Short landscape phones: float the bar over the backdrop and give every
    pixel of height to the avatar. */
@@ -395,7 +399,7 @@ a.card:active {
     z-index: 10;
     padding: 0;
   }
-  .screen-tip {
+  .dock {
     display: none;
   }
   .screen-bar {
@@ -461,9 +465,7 @@ a.card:active {
 }
 
 .hit--shown {
-  fill: rgba(255, 255, 255, 0.14);
-  stroke: rgba(255, 255, 255, 0.9);
-  stroke-dasharray: 4 3;
+  fill: rgba(255, 255, 255, 0.1);
 }
 
 .hint-dots,
@@ -716,6 +718,7 @@ a.card:active {
 }
 
 .tabs {
+  grid-area: tabs;
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -745,9 +748,7 @@ a.card:active {
 /* ---------- Locked tap locations ---------- */
 
 .hit--locked {
-  fill: rgba(23, 18, 31, 0.28);
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-dasharray: 3 3;
+  fill: rgba(23, 18, 31, 0.22);
 }
 
 .lock-dot {
@@ -957,4 +958,106 @@ a.card:active {
   margin: -4px 0 0;
   color: var(--muted);
   font-size: 13px;
+}
+
+/* ---------- Dock (actions under the avatar) and wide layout ---------- */
+
+.tab small {
+  display: none;
+}
+
+.dock {
+  grid-area: dock;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px calc(12px + 0px);
+  transition: opacity 0.4s ease;
+}
+
+.dock--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dock .btn {
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.btn--accent {
+  background: var(--accent);
+  color: #1b1020;
+}
+
+.dock-tip {
+  display: none;
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Tablet / desktop: the outfits and actions move to a side panel next to the avatar,
+   so the screen is used instead of leaving empty bands left and right. */
+@media (min-width: 900px) and (min-height: 560px) {
+  .screen {
+    grid-template-columns: minmax(0, 520px) 340px;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas: "bar bar" "stage tabs" "stage dock";
+    justify-content: center;
+    column-gap: clamp(24px, 4vw, 56px);
+  }
+  .screen-bar {
+    grid-template-columns: 44px 1fr 44px;
+    padding-top: 16px;
+  }
+  .stage {
+    padding: 8px 0 24px;
+  }
+  .tabs {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-self: end;
+    gap: 10px;
+    padding: 8px 0 0;
+  }
+  .tab {
+    display: grid;
+    gap: 2px;
+    text-align: left;
+    padding: 14px 18px;
+    border-radius: 18px;
+    font-size: 17px;
+  }
+  .tab small {
+    display: block;
+    font-weight: 500;
+    font-size: 13px;
+    opacity: 0.8;
+  }
+  .dock {
+    align-self: start;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 18px 0 24px;
+    gap: 10px;
+  }
+  .dock .btn {
+    padding: 13px 18px;
+    font-size: 15px;
+  }
+  .dock-tip {
+    display: block;
+    text-align: left;
+    margin-top: 6px;
+  }
 }

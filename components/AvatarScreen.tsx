@@ -13,6 +13,11 @@ const HINTS_SEEN_KEY = "tickleme:hints-seen";
 const priceLabel = (usdc: number) => usdc.toFixed(2);
 const LABEL: Record<VariantKey, string> = { jeans: "Jeans", bikini: "Bikini", explicit: "Explicit" };
 const ORDER: VariantKey[] = ["jeans", "bikini", "explicit"];
+const SUB: Record<VariantKey, (a: AvatarSummary) => string> = {
+  jeans: () => "Open to everyone",
+  bikini: () => "Free · members 18+",
+  explicit: (a) => `18+ · ${priceLabel(a.pricing.explicit)} USDC`,
+};
 
 type Load =
   | { status: "loading" }
@@ -92,6 +97,7 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
   const poster = avatar.variants[variant].poster;
   const manifest = load.status === "ready" ? load.manifest : null;
   const gate = load.status === "gated" ? load.reason : null;
+  const lockedCount = manifest ? manifest.actions.filter((a) => a.locked).length : 0;
   const mention = variant === "explicit" ? "The explicit version" : "The bikini version";
   const autoOpen = variant !== "explicit";
   const showGate = autoOpen ? modal?.type !== "closed" && modal?.type !== "paywall" : modal?.type === "gate";
@@ -110,25 +116,14 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
         <h1 className="screen-title">{avatar.name}</h1>
         <div className="screen-actions">
           <AccountArea />
-          <button
-            type="button"
-            className={`icon-btn ${hints ? "icon-btn--on" : ""}`}
-            aria-pressed={hints}
-            aria-label={hints ? "Hide touch spots" : "Show touch spots"}
-            onClick={() => setHints((h) => !h)}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden>
-              <circle cx="12" cy="12" r="3" />
-              <circle cx="12" cy="12" r="8" strokeDasharray="3 3" />
-            </svg>
-          </button>
         </div>
       </header>
 
       <div className="tabs" role="tablist" aria-label="Outfit">
         {ORDER.map((k) => (
           <button key={k} type="button" role="tab" aria-selected={variant === k} className={`tab ${variant === k ? "tab--on" : ""}`} onClick={() => pick(k)}>
-            {LABEL[k]}
+            <span>{LABEL[k]}</span>
+            <small>{SUB[k](avatar)}</small>
           </button>
         ))}
       </div>
@@ -173,9 +168,17 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
         </div>
       </div>
 
-      <p className={`screen-tip ${ready ? "" : "screen-tip--hidden"}`}>
-        {manifest && manifest.actions.some((a) => a.locked) ? "Tap the 🔒 spots to unlock more" : `Tap ${avatar.name} anywhere to play`}
-      </p>
+      <div className={`dock ${ready ? "" : "dock--hidden"}`}>
+        {lockedCount > 0 && (
+          <button type="button" className="btn btn--accent" onClick={() => setModal({ type: "paywall", need: "taps" })}>
+            🔒 Unlock {lockedCount} more spot{lockedCount > 1 ? "s" : ""} · {priceLabel(avatar.pricing.taps)} USDC
+          </button>
+        )}
+        <button type="button" className="btn btn--ghost" aria-pressed={hints} onClick={() => setHints((h) => !h)}>
+          {hints ? "Hide touch spots" : "Show touch spots"}
+        </button>
+        <p className="dock-tip">Tap {avatar.name} anywhere to play</p>
+      </div>
 
       {/* Gate dialogs. The bikini outfit opens its sign-in / age dialog by itself; the explicit outfit first
           shows the blurred teaser, and its dialogs (sign-in, age, payment) only open when the user clicks Unlock. */}
