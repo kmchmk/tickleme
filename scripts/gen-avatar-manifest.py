@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Writes content/avatars/avatar-1.json: one avatar, three variants.
+"""Writes content/avatars/<id>.json: avatars with three variants each.
 
 Touch areas are percentages of the 480x720 frame. Sides are the subject's own
 (her right is on the screen's left): each pair is defined for the screen-left
@@ -73,16 +73,24 @@ def variant(set_, bucket, access, idle, poster, version, tier_of, extras=False):
         "actions": [{"id": f, "label": l, "video": f"{f}.mp4", "region": r, "tier": tier_of(n)} for n, f, l, r in acts],
     }
 
-avatar = {
-    "id": "avatar-1",
-    "name": "Avatar 1",
-    "pricing": {"taps": 0.69, "explicit": 0.69, "bundle": 0.99},   # USDC
-    "variants": {
-        "jeans": variant("woman-in-jeans", "public", "guest", "idle-jeans.mp4", "poster.jpg", 3, lambda n: "free"),
-        "bikini": variant("woman-in-bikini", "private", "member", "idle-bikini.mp4", "poster.jpg", 5,
-                          lambda n: "taps" if n in EXTRA_NUMBERS else "free", extras=True),
-        "explicit": variant("woman-in-nude", "private", "paid", "idle-nude.mp4", "web/poster.png", 1, lambda n: "explicit"),
-    },
-}
-open("content/avatars/avatar-1.json", "w").write(json.dumps(avatar, indent=2) + "\n")
-print("avatar-1:", {k: (len(v["actions"]), sum(a["tier"] == "free" for a in v["actions"])) for k, v in avatar["variants"].items()}, "(actions, free)")
+def make(id_, name, jeans, bikini, nude):
+    """Each argument is (set folder, version)."""
+    return {
+        "id": id_,
+        "name": name,
+        "pricing": {"taps": 0.69, "explicit": 0.69, "bundle": 0.99},   # USDC
+        "variants": {
+            "jeans": variant(jeans[0], "public", "guest", "idle-jeans.mp4", "poster.jpg", jeans[1], lambda n: "free"),
+            "bikini": variant(bikini[0], "private", "member", "idle-bikini.mp4", "poster.jpg", bikini[1],
+                              lambda n: "taps" if n in EXTRA_NUMBERS else "free", extras=True),
+            "explicit": variant(nude[0], "private", "paid", "idle-nude.mp4", "web/poster.png", nude[1], lambda n: "explicit"),
+        },
+    }
+
+AVATARS = [
+    make("avatar-1", "Avatar 1", ("woman-in-jeans", 3), ("woman-in-bikini", 5), ("woman-in-nude", 1)),
+    make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 1), ("white-woman-in-bikini", 1), ("white-woman-in-nude", 1)),
+]
+for avatar in AVATARS:
+    open(f"content/avatars/{avatar['id']}.json", "w").write(json.dumps(avatar, indent=2) + "\n")
+    print(avatar["id"], {k: (len(v["actions"]), sum(a["tier"] == "free" for a in v["actions"])) for k, v in avatar["variants"].items()}, "(actions, free)")
