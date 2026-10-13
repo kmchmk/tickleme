@@ -61,13 +61,22 @@ def analyze(path):
         for i in range(1, len(lv)):
             lv[i] = max(lv[i], lv[i - 1] + 1e-3)  # keep strictly increasing
     mid = float(np.mean([p[a][0] for a in ("lsho", "rsho", "lhip", "rhip")]))
+    # Both sides share one set of levels and mirrored x offsets, so the zones come out symmetric.
+    def sym(l, r):
+        l, r = np.array(l, float), np.array(r, float)
+        off = ((l - mid) + (mid - r)) / 2
+        return {"l": list(mid + off), "r": list(mid - off)}
+    armx = sym([p["lsho"][0], p["lelb"][0], p["lwri"][0], (p["lpin"][0] + p["lidx"][0]) / 2], [p["rsho"][0], p["relb"][0], p["rwri"][0], (p["rpin"][0] + p["ridx"][0]) / 2])
+    legx = sym([p["lhip"][0], p["lknee"][0], p["lank"][0], p["lank"][0]], [p["rhip"][0], p["rknee"][0], p["rank"][0], p["rank"][0]])
+    armlv = [float(np.mean([arm["l"][i], arm["r"][i]])) for i in range(4)]
+    leglv = [float(np.mean([p["lhip"][1], p["rhip"][1]])), float(np.mean([p["lknee"][1], p["rknee"][1]])), float(np.mean([p["lank"][1], p["rank"][1]])), sole]
+    for lv in (armlv, leglv):
+        for i in range(1, len(lv)):
+            lv[i] = max(lv[i], lv[i - 1] + 1e-3)
     return {
-        "mask": mask, "body": body, "arm": arm, "mid": mid,
-        "Sw": float(abs(p["lsho"][0] - p["rsho"][0])), "Hw": float(abs(p["lear"][0] - p["rear"][0])),
-        # x of the arm / leg centre lines at each of their levels
-        "armx": {s: [p[s + "sho"][0], p[s + "elb"][0], p[s + "wri"][0], (p[s + "pin"][0] + p[s + "idx"][0]) / 2] for s in "lr"},
-        "legx": {s: [p[s + "hip"][0], p[s + "knee"][0], p[s + "ank"][0], p[s + "ank"][0]] for s in "lr"},
-        "leglv": {s: [p[s + "hip"][1], p[s + "knee"][1], p[s + "ank"][1], sole] for s in "lr"},
+        "mask": mask, "body": body, "arm": {"l": armlv, "r": armlv}, "mid": mid,
+        "head": mid, "Sw": float(abs(p["lsho"][0] - p["rsho"][0])), "Hw": float(abs(p["lear"][0] - p["rear"][0])),
+        "armx": armx, "legx": legx, "leglv": {"l": leglv, "r": leglv},
     }
 
 def to_u(levels, y):
@@ -110,6 +119,17 @@ def calibrate(ref_png):
         ym = y + h / 2
         base, sc = line(ym), a[scale_of(z["name"])]
         rules[z["name"]] = {"u0": to_u(levels, y), "u1": to_u(levels, y + h), "x0": (x - base) / sc, "x1": (x + w - base) / sc}
+    # Make the rules symmetric: a right zone and its left twin are mirror images, centre zones are centred.
+    for n in list(rules):
+        if n.startswith("right-"):
+            r, l = rules[n], rules["left-" + n[6:]]
+            u0, u1 = (r["u0"] + l["u0"]) / 2, (r["u1"] + l["u1"]) / 2
+            x0, x1 = (r["x0"] - l["x1"]) / 2, (r["x1"] - l["x0"]) / 2
+            rules[n] = {"u0": u0, "u1": u1, "x0": x0, "x1": x1}
+            rules["left-" + n[6:]] = {"u0": u0, "u1": u1, "x0": -x1, "x1": -x0}
+        elif not n.startswith("left-"):
+            half = (rules[n]["x1"] - rules[n]["x0"]) / 2
+            rules[n]["x0"], rules[n]["x1"] = -half, half
     # Belly, lower belly and groin are re-stacked between the bottom of the ribs and the crotch.
     # The hand-drawn reference put them too low for outfits whose crotch sits higher (bikini), and the
     # crotch is anatomy, not clothing: it is about 28% of the way from the hip to the knee.
@@ -132,7 +152,7 @@ def zones_for(a, rules):
         out[name] = [round(x0, 4), round(y0, 4), round(x1 - x0, 4), round(y1 - y0, 4)]
     return out
 
-def partition(boxes, locked, mask, margin=4):
+def partition(boxes, locked, mask, margin=4, groups=None):
     """Label every pixel of the person (plus a small margin) with exactly one zone: no gaps, no overlaps.
 
     A pixel inside one or more zone boxes goes to the locked box if there is one, else to the box it is
@@ -145,18 +165,28 @@ def partition(boxes, locked, mask, margin=4):
     px, py = (xs + 0.5) / W, (ys + 0.5) / H
     names = list(boxes)
     cost = np.empty((len(names), H, W), np.float32)
+    member = {n: n for n in names}
+    for g, ms in (groups or {}).items():  # merged zones: a pixel belongs to the group of the box it fits best
+        for m in ms: member[m] = g
     for i, n in enumerate(names):
         x, y, w, h = boxes[n]
         cn = np.maximum(np.abs(px - (x + w / 2)) / (w / 2), np.abs(py - (y + h / 2)) / (h / 2))  # <= 1 inside the box
         out = np.hypot(np.maximum(np.maximum(x - px, px - (x + w)), 0), np.maximum(np.maximum(y - py, py - (y + h)), 0))  # distance outside
         # inside: most central box wins, a locked box beats everything; outside any box: nearest box
         cost[i] = np.where(cn <= 1, cn - (10 if locked[n] else 0), 2 + out * 100)
-    label = cost.argmin(axis=0) + 1
+    if groups:
+        gnames = list(dict.fromkeys(member[n] for n in names))
+        gcost = np.stack([np.min([cost[i] for i, n in enumerate(names) if member[n] == g], axis=0) for g in gnames])
+        label = gcost.argmin(axis=0) + 1
+        names = gnames
+    else:
+        label = cost.argmin(axis=0) + 1
     label[~body] = 0
     return label, names
 
-def preview(frame_path, boxes, locked, mask, out_path):
-    label, names = partition(boxes, locked, mask)
+def preview(frame_path, boxes, locked, mask, out_path, groups=None):
+    label, names = partition(boxes, locked, mask, groups=groups)
+    locked = {**locked, **{g: any(locked[m] for m in ms) for g, ms in (groups or {}).items()}}
     im = np.asarray(Image.open(frame_path).convert("RGB")).astype(float)
     pal = [(230, 25, 75), (60, 180, 75), (255, 225, 25), (0, 130, 200), (245, 130, 48), (145, 30, 180), (70, 240, 240), (240, 50, 230), (210, 245, 60), (250, 190, 190), (0, 128, 128), (170, 110, 40)]
     col = np.zeros_like(im)
