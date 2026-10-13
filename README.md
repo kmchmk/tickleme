@@ -46,7 +46,11 @@ Local development without any keys: `npm run dev` uses an in-memory database (pg
 The generator uploads a set of clips (`NN-name.mp4`, `idle-<name>.mp4`, a still) to the **inbox** bucket (`avatars-inbox`), one folder per set, e.g. `avatars/woman-in-jeans/`. Then:
 1. Check the clips: same size, perfect cycle (last frame == first frame), numerically, not by watching.
 2. Move them to where they belong with `node scripts/bucket.mjs mv avatars-inbox avatars-free|avatars-private avatars/<set>/ '<poster regex>'`: jeans -> public; bikini/explicit -> private. Make a public poster (blurred for explicit) in `avatars-free`.
-3. Update the variant in `scripts/gen-avatar-manifest.py`, run it, bump the variant's `version` (browsers cache clips), commit.
+3. Add the outfit to `scripts/gen-avatar-manifest.py`, then compute its touch zones from its own body proportions (no hand placement):
+   `node scripts/idle-frames.mjs frames/` (idle frame per outfit), `python3 scripts/gen-zones.py build frames/`
+   (pose model finds landmarks; rules in `scripts/zone-rules.json`), then run the manifest generator, bump the variant's `version`
+   (browsers cache clips), commit. `gen-zones.py check frames/ out/` draws the zones on the frames for a quick look.
+   Missing clips can be filled with nearby copies: `node scripts/placeholder-clips.mjs`.
 For a new avatar: copy the avatar JSON, change `id`, `name`, `set`s.
 
 Credentials for `scripts/bucket.mjs` are created per task and revoked afterwards.

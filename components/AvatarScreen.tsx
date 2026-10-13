@@ -171,7 +171,7 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
       <div className={`dock ${ready ? "" : "dock--hidden"}`}>
         {lockedCount > 0 && (
           <button type="button" className="btn btn--accent" onClick={() => setModal({ type: "paywall", need: "taps" })}>
-            🔒 Unlock {lockedCount} more spot{lockedCount > 1 ? "s" : ""} · {priceLabel(avatar.pricing.taps)} USDC
+            Unlock {lockedCount} more spot{lockedCount > 1 ? "s" : ""} · {priceLabel(avatar.pricing.taps)} USDC
           </button>
         )}
         <button type="button" className="btn btn--ghost" aria-pressed={hints} onClick={() => setHints((h) => !h)}>

@@ -14,31 +14,18 @@
       "idle": "idle-jeans.mp4",
       "poster": "poster.jpg",
       "aspectRatio": 0.6667,
-      "version": 4,
+      "version": 5,
       "actions": [
-        {
-          "id": "21-belly",
-          "label": "Belly",
-          "video": "21-belly.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 41.02,
-            "y": 41.67,
-            "w": 18.07,
-            "h": 7.81
-          },
-          "tier": "free"
-        },
         {
           "id": "25-right-thigh",
           "label": "Right thigh",
           "video": "25-right-thigh.mp4",
           "region": {
             "shape": "rect",
-            "x": 39.06,
-            "y": 63.8,
-            "w": 10.74,
-            "h": 10.42
+            "x": 37.9,
+            "y": 64.13,
+            "w": 10.94,
+            "h": 10.69
           },
           "tier": "free"
         },
@@ -48,75 +35,23 @@
           "video": "26-left-thigh.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 63.8,
-            "w": 10.74,
-            "h": 10.42
+            "x": 51.42,
+            "y": 64.03,
+            "w": 10.94,
+            "h": 10.63
           },
           "tier": "free"
         },
         {
-          "id": "22-lower-belly",
-          "label": "Lower belly",
-          "video": "22-lower-belly.mp4",
+          "id": "21-belly",
+          "label": "Belly",
+          "video": "21-belly.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.48,
-            "y": 49.48,
-            "w": 15.14,
-            "h": 6.51
-          },
-          "tier": "free"
-        },
-        {
-          "id": "29-right-shin",
-          "label": "Right shin",
-          "video": "29-right-shin.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 41.02,
-            "y": 81.38,
-            "w": 8.79,
-            "h": 9.11
-          },
-          "tier": "free"
-        },
-        {
-          "id": "30-left-shin",
-          "label": "Left shin",
-          "video": "30-left-shin.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 50.29,
-            "y": 81.38,
-            "w": 8.79,
-            "h": 9.11
-          },
-          "tier": "free"
-        },
-        {
-          "id": "19-right-ribs",
-          "label": "Right ribs",
-          "video": "19-right-ribs.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 39.06,
-            "y": 34.51,
-            "w": 10.74,
-            "h": 7.16
-          },
-          "tier": "free"
-        },
-        {
-          "id": "20-left-ribs",
-          "label": "Left ribs",
-          "video": "20-left-ribs.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 50.29,
-            "y": 34.51,
-            "w": 10.74,
-            "h": 7.16
+            "x": 40.72,
+            "y": 41.37,
+            "w": 18.4,
+            "h": 5.06
           },
           "tier": "free"
         },
@@ -126,23 +61,62 @@
           "video": "01-forehead.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.97,
-            "y": 4.56,
-            "w": 14.16,
-            "h": 5.21
+            "x": 42.75,
+            "y": 4.97,
+            "w": 14.35,
+            "h": 5.75
           },
           "tier": "free"
         },
         {
-          "id": "27-right-knee",
-          "label": "Right knee",
-          "video": "27-right-knee.mp4",
+          "id": "30-left-shin",
+          "label": "Left shin",
+          "video": "30-left-shin.mp4",
           "region": {
             "shape": "rect",
-            "x": 40.04,
-            "y": 74.22,
-            "w": 9.77,
-            "h": 7.16
+            "x": 50.04,
+            "y": 81.88,
+            "w": 8.95,
+            "h": 9.0
+          },
+          "tier": "free"
+        },
+        {
+          "id": "29-right-shin",
+          "label": "Right shin",
+          "video": "29-right-shin.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 39.78,
+            "y": 81.92,
+            "w": 8.95,
+            "h": 8.92
+          },
+          "tier": "free"
+        },
+        {
+          "id": "19-right-ribs",
+          "label": "Right ribs",
+          "video": "19-right-ribs.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 38.73,
+            "y": 34.41,
+            "w": 10.94,
+            "h": 6.96
+          },
+          "tier": "free"
+        },
+        {
+          "id": "20-left-ribs",
+          "label": "Left ribs",
+          "video": "20-left-ribs.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 50.16,
+            "y": 34.41,
+            "w": 10.94,
+            "h": 6.96
           },
           "tier": "free"
         },
@@ -152,23 +126,10 @@
           "video": "28-left-knee.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 74.22,
-            "w": 9.77,
-            "h": 7.16
-          },
-          "tier": "free"
-        },
-        {
-          "id": "07-left-shoulder",
-          "label": "Left shoulder",
-          "video": "07-left-shoulder.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 54.69,
-            "y": 20.51,
-            "w": 12.21,
-            "h": 5.53
+            "x": 50.69,
+            "y": 74.66,
+            "w": 9.95,
+            "h": 7.21
           },
           "tier": "free"
         },
@@ -178,10 +139,10 @@
           "video": "12-right-forearm.mp4",
           "region": {
             "shape": "rect",
-            "x": 32.23,
-            "y": 44.92,
-            "w": 7.81,
-            "h": 8.46
+            "x": 31.3,
+            "y": 46.21,
+            "w": 7.95,
+            "h": 8.94
           },
           "tier": "free"
         },
@@ -191,23 +152,23 @@
           "video": "13-left-forearm.mp4",
           "region": {
             "shape": "rect",
-            "x": 60.06,
-            "y": 44.92,
-            "w": 7.81,
-            "h": 8.46
+            "x": 60.25,
+            "y": 46.04,
+            "w": 7.95,
+            "h": 8.92
           },
           "tier": "free"
         },
         {
-          "id": "06-right-shoulder",
-          "label": "Right shoulder",
-          "video": "06-right-shoulder.mp4",
+          "id": "27-right-knee",
+          "label": "Right knee",
+          "video": "27-right-knee.mp4",
           "region": {
             "shape": "rect",
-            "x": 33.69,
-            "y": 20.51,
-            "w": 11.72,
-            "h": 5.53
+            "x": 38.84,
+            "y": 74.82,
+            "w": 9.95,
+            "h": 7.1
           },
           "tier": "free"
         },
@@ -217,10 +178,10 @@
           "video": "14-right-hand.mp4",
           "region": {
             "shape": "rect",
-            "x": 32.23,
-            "y": 53.39,
-            "w": 8.79,
-            "h": 7.16
+            "x": 31.32,
+            "y": 55.16,
+            "w": 8.95,
+            "h": 7.52
           },
           "tier": "free"
         },
@@ -230,10 +191,10 @@
           "video": "15-left-hand.mp4",
           "region": {
             "shape": "rect",
-            "x": 59.08,
-            "y": 53.39,
-            "w": 8.79,
-            "h": 7.16
+            "x": 58.69,
+            "y": 54.97,
+            "w": 8.95,
+            "h": 7.49
           },
           "tier": "free"
         },
@@ -243,10 +204,23 @@
           "video": "23-right-hip.mp4",
           "region": {
             "shape": "rect",
-            "x": 37.6,
-            "y": 55.99,
-            "w": 7.81,
-            "h": 7.81
+            "x": 36.74,
+            "y": 55.86,
+            "w": 7.95,
+            "h": 8.27
+          },
+          "tier": "free"
+        },
+        {
+          "id": "07-left-shoulder",
+          "label": "Left shoulder",
+          "video": "07-left-shoulder.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 54.64,
+            "y": 20.94,
+            "w": 12.43,
+            "h": 5.24
           },
           "tier": "free"
         },
@@ -256,10 +230,36 @@
           "video": "24-left-hip.mp4",
           "region": {
             "shape": "rect",
-            "x": 54.69,
-            "y": 55.99,
-            "w": 7.81,
-            "h": 7.81
+            "x": 55.42,
+            "y": 55.95,
+            "w": 7.95,
+            "h": 8.08
+          },
+          "tier": "free"
+        },
+        {
+          "id": "06-right-shoulder",
+          "label": "Right shoulder",
+          "video": "06-right-shoulder.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 33.26,
+            "y": 20.94,
+            "w": 11.94,
+            "h": 5.24
+          },
+          "tier": "free"
+        },
+        {
+          "id": "22-lower-belly",
+          "label": "Lower belly",
+          "video": "22-lower-belly.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 42.21,
+            "y": 46.43,
+            "w": 15.42,
+            "h": 3.56
           },
           "tier": "free"
         },
@@ -269,10 +269,10 @@
           "video": "18-upper-chest.mp4",
           "region": {
             "shape": "rect",
-            "x": 44.43,
-            "y": 20.51,
-            "w": 11.23,
-            "h": 4.56
+            "x": 44.2,
+            "y": 20.94,
+            "w": 11.44,
+            "h": 4.29
           },
           "tier": "free"
         },
@@ -282,10 +282,10 @@
           "video": "10-right-elbow.mp4",
           "region": {
             "shape": "rect",
-            "x": 32.71,
-            "y": 39.06,
-            "w": 7.32,
-            "h": 5.86
+            "x": 31.67,
+            "y": 39.98,
+            "w": 7.45,
+            "h": 6.23
           },
           "tier": "free"
         },
@@ -295,23 +295,10 @@
           "video": "11-left-elbow.mp4",
           "region": {
             "shape": "rect",
-            "x": 60.06,
-            "y": 39.06,
-            "w": 7.32,
-            "h": 5.86
-          },
-          "tier": "free"
-        },
-        {
-          "id": "16-right-underarm",
-          "label": "Right underarm",
-          "video": "16-right-underarm.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 32.71,
-            "y": 26.04,
-            "w": 5.37,
-            "h": 7.81
+            "x": 60.56,
+            "y": 39.8,
+            "w": 7.45,
+            "h": 6.23
           },
           "tier": "free"
         },
@@ -321,49 +308,23 @@
           "video": "17-left-underarm.mp4",
           "region": {
             "shape": "rect",
-            "x": 62.01,
-            "y": 26.04,
-            "w": 5.37,
-            "h": 7.81
+            "x": 62.42,
+            "y": 26.25,
+            "w": 5.47,
+            "h": 8.09
           },
           "tier": "free"
         },
         {
-          "id": "31-right-foot",
-          "label": "Right foot",
-          "video": "31-right-foot.mp4",
+          "id": "16-right-underarm",
+          "label": "Right underarm",
+          "video": "16-right-underarm.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.97,
-            "y": 90.49,
-            "w": 6.84,
-            "h": 5.86
-          },
-          "tier": "free"
-        },
-        {
-          "id": "32-left-foot",
-          "label": "Left foot",
-          "video": "32-left-foot.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 50.29,
-            "y": 90.49,
-            "w": 6.84,
-            "h": 5.86
-          },
-          "tier": "free"
-        },
-        {
-          "id": "08-right-upper-arm",
-          "label": "Right upper arm",
-          "video": "08-right-upper-arm.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 32.71,
-            "y": 33.85,
-            "w": 7.32,
-            "h": 5.21
+            "x": 31.9,
+            "y": 26.47,
+            "w": 5.47,
+            "h": 8.06
           },
           "tier": "free"
         },
@@ -373,10 +334,36 @@
           "video": "09-left-upper-arm.mp4",
           "region": {
             "shape": "rect",
-            "x": 60.06,
-            "y": 33.85,
-            "w": 7.32,
-            "h": 5.21
+            "x": 60.76,
+            "y": 34.35,
+            "w": 7.45,
+            "h": 5.46
+          },
+          "tier": "free"
+        },
+        {
+          "id": "08-right-upper-arm",
+          "label": "Right upper arm",
+          "video": "08-right-upper-arm.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 31.58,
+            "y": 34.53,
+            "w": 7.45,
+            "h": 5.45
+          },
+          "tier": "free"
+        },
+        {
+          "id": "31-right-foot",
+          "label": "Right foot",
+          "video": "31-right-foot.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 41.75,
+            "y": 90.83,
+            "w": 6.97,
+            "h": 5.39
           },
           "tier": "free"
         },
@@ -386,10 +373,23 @@
           "video": "03-left-cheek.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.0,
-            "y": 9.77,
-            "w": 7.13,
-            "h": 5.21
+            "x": 49.87,
+            "y": 10.72,
+            "w": 7.23,
+            "h": 5.16
+          },
+          "tier": "free"
+        },
+        {
+          "id": "32-left-foot",
+          "label": "Left foot",
+          "video": "32-left-foot.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 49.81,
+            "y": 90.88,
+            "w": 6.97,
+            "h": 5.35
           },
           "tier": "free"
         },
@@ -399,10 +399,10 @@
           "video": "02-right-cheek.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.97,
-            "y": 9.77,
-            "w": 7.03,
-            "h": 5.21
+            "x": 42.75,
+            "y": 10.72,
+            "w": 7.12,
+            "h": 5.16
           },
           "tier": "free"
         },
@@ -412,10 +412,10 @@
           "video": "04-chin.mp4",
           "region": {
             "shape": "rect",
-            "x": 43.95,
-            "y": 14.97,
-            "w": 12.21,
-            "h": 2.93
+            "x": 43.74,
+            "y": 15.87,
+            "w": 12.37,
+            "h": 2.68
           },
           "tier": "free"
         },
@@ -425,10 +425,10 @@
           "video": "05-neck.mp4",
           "region": {
             "shape": "rect",
-            "x": 45.41,
-            "y": 17.9,
-            "w": 9.28,
-            "h": 2.93
+            "x": 45.22,
+            "y": 18.55,
+            "w": 9.4,
+            "h": 2.68
           },
           "tier": "free"
         },
@@ -438,10 +438,10 @@
           "video": "33-right-breast.mp4",
           "region": {
             "shape": "rect",
-            "x": 38.09,
-            "y": 26.04,
-            "w": 11.72,
-            "h": 8.46
+            "x": 37.74,
+            "y": 26.17,
+            "w": 11.94,
+            "h": 8.23
           },
           "tier": "taps"
         },
@@ -451,10 +451,10 @@
           "video": "34-left-breast.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 26.04,
-            "w": 11.72,
-            "h": 8.46
+            "x": 50.16,
+            "y": 26.17,
+            "w": 11.94,
+            "h": 8.23
           },
           "tier": "taps"
         },
@@ -464,10 +464,10 @@
           "video": "35-groin.mp4",
           "region": {
             "shape": "rect",
-            "x": 45.41,
-            "y": 55.99,
-            "w": 9.28,
-            "h": 7.16
+            "x": 45.19,
+            "y": 48.24,
+            "w": 9.45,
+            "h": 5.91
           },
           "tier": "taps"
         }
@@ -480,18 +480,18 @@
       "idle": "idle-bikini.mp4",
       "poster": "poster.jpg",
       "aspectRatio": 0.6667,
-      "version": 6,
+      "version": 7,
       "actions": [
         {
-          "id": "21-belly",
-          "label": "Belly",
-          "video": "21-belly.mp4",
+          "id": "26-left-thigh",
+          "label": "Left thigh",
+          "video": "26-left-thigh.mp4",
           "region": {
             "shape": "rect",
-            "x": 41.02,
-            "y": 41.67,
-            "w": 18.07,
-            "h": 7.81
+            "x": 50.15,
+            "y": 63.68,
+            "w": 10.88,
+            "h": 10.2
           },
           "tier": "free"
         },
@@ -501,36 +501,23 @@
           "video": "25-right-thigh.mp4",
           "region": {
             "shape": "rect",
-            "x": 39.06,
-            "y": 63.8,
-            "w": 10.74,
-            "h": 10.42
+            "x": 38.3,
+            "y": 63.2,
+            "w": 10.88,
+            "h": 10.18
           },
           "tier": "free"
         },
         {
-          "id": "26-left-thigh",
-          "label": "Left thigh",
-          "video": "26-left-thigh.mp4",
+          "id": "21-belly",
+          "label": "Belly",
+          "video": "21-belly.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 63.8,
-            "w": 10.74,
-            "h": 10.42
-          },
-          "tier": "free"
-        },
-        {
-          "id": "22-lower-belly",
-          "label": "Lower belly",
-          "video": "22-lower-belly.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 42.48,
-            "y": 49.48,
-            "w": 15.14,
-            "h": 6.51
+            "x": 40.83,
+            "y": 41.63,
+            "w": 18.31,
+            "h": 5.16
           },
           "tier": "free"
         },
@@ -540,10 +527,10 @@
           "video": "29-right-shin.mp4",
           "region": {
             "shape": "rect",
-            "x": 41.02,
-            "y": 81.38,
-            "w": 8.79,
-            "h": 9.11
+            "x": 39.61,
+            "y": 80.38,
+            "w": 8.91,
+            "h": 8.95
           },
           "tier": "free"
         },
@@ -553,10 +540,10 @@
           "video": "30-left-shin.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 81.38,
-            "w": 8.79,
-            "h": 9.11
+            "x": 49.79,
+            "y": 80.83,
+            "w": 8.91,
+            "h": 8.81
           },
           "tier": "free"
         },
@@ -566,10 +553,10 @@
           "video": "19-right-ribs.mp4",
           "region": {
             "shape": "rect",
-            "x": 39.06,
-            "y": 34.51,
-            "w": 10.74,
-            "h": 7.16
+            "x": 38.84,
+            "y": 34.52,
+            "w": 10.88,
+            "h": 7.11
           },
           "tier": "free"
         },
@@ -579,10 +566,10 @@
           "video": "20-left-ribs.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 34.51,
-            "w": 10.74,
-            "h": 7.16
+            "x": 50.22,
+            "y": 34.52,
+            "w": 10.88,
+            "h": 7.11
           },
           "tier": "free"
         },
@@ -592,62 +579,10 @@
           "video": "01-forehead.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.97,
-            "y": 4.56,
-            "w": 14.16,
-            "h": 5.21
-          },
-          "tier": "free"
-        },
-        {
-          "id": "27-right-knee",
-          "label": "Right knee",
-          "video": "27-right-knee.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 40.04,
-            "y": 74.22,
-            "w": 9.77,
-            "h": 7.16
-          },
-          "tier": "free"
-        },
-        {
-          "id": "28-left-knee",
-          "label": "Left knee",
-          "video": "28-left-knee.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 50.29,
-            "y": 74.22,
-            "w": 9.77,
-            "h": 7.16
-          },
-          "tier": "free"
-        },
-        {
-          "id": "07-left-shoulder",
-          "label": "Left shoulder",
-          "video": "07-left-shoulder.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 54.69,
-            "y": 20.51,
-            "w": 12.21,
-            "h": 5.53
-          },
-          "tier": "free"
-        },
-        {
-          "id": "12-right-forearm",
-          "label": "Right forearm",
-          "video": "12-right-forearm.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 32.23,
-            "y": 44.92,
-            "w": 7.81,
-            "h": 8.46
+            "x": 43.46,
+            "y": 5.25,
+            "w": 13.13,
+            "h": 5.41
           },
           "tier": "free"
         },
@@ -657,36 +592,49 @@
           "video": "13-left-forearm.mp4",
           "region": {
             "shape": "rect",
-            "x": 60.06,
-            "y": 44.92,
-            "w": 7.81,
-            "h": 8.46
+            "x": 59.3,
+            "y": 45.19,
+            "w": 7.91,
+            "h": 8.8
           },
           "tier": "free"
         },
         {
-          "id": "06-right-shoulder",
-          "label": "Right shoulder",
-          "video": "06-right-shoulder.mp4",
+          "id": "27-right-knee",
+          "label": "Right knee",
+          "video": "27-right-knee.mp4",
           "region": {
             "shape": "rect",
-            "x": 33.69,
-            "y": 20.51,
-            "w": 11.72,
-            "h": 5.53
+            "x": 38.94,
+            "y": 73.38,
+            "w": 9.9,
+            "h": 7.0
           },
           "tier": "free"
         },
         {
-          "id": "14-right-hand",
-          "label": "Right hand",
-          "video": "14-right-hand.mp4",
+          "id": "28-left-knee",
+          "label": "Left knee",
+          "video": "28-left-knee.mp4",
           "region": {
             "shape": "rect",
-            "x": 32.23,
-            "y": 53.39,
-            "w": 8.79,
-            "h": 7.16
+            "x": 49.96,
+            "y": 73.89,
+            "w": 9.9,
+            "h": 6.94
+          },
+          "tier": "free"
+        },
+        {
+          "id": "12-right-forearm",
+          "label": "Right forearm",
+          "video": "12-right-forearm.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 32.92,
+            "y": 45.2,
+            "w": 7.91,
+            "h": 8.43
           },
           "tier": "free"
         },
@@ -696,23 +644,49 @@
           "video": "15-left-hand.mp4",
           "region": {
             "shape": "rect",
-            "x": 59.08,
-            "y": 53.39,
-            "w": 8.79,
-            "h": 7.16
+            "x": 58.01,
+            "y": 54.0,
+            "w": 8.91,
+            "h": 7.46
           },
           "tier": "free"
         },
         {
-          "id": "23-right-hip",
-          "label": "Right hip",
-          "video": "23-right-hip.mp4",
+          "id": "07-left-shoulder",
+          "label": "Left shoulder",
+          "video": "07-left-shoulder.mp4",
           "region": {
             "shape": "rect",
-            "x": 37.6,
-            "y": 55.99,
-            "w": 7.81,
-            "h": 7.81
+            "x": 54.68,
+            "y": 20.84,
+            "w": 12.37,
+            "h": 5.27
+          },
+          "tier": "free"
+        },
+        {
+          "id": "14-right-hand",
+          "label": "Right hand",
+          "video": "14-right-hand.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 32.75,
+            "y": 53.63,
+            "w": 8.91,
+            "h": 7.15
+          },
+          "tier": "free"
+        },
+        {
+          "id": "06-right-shoulder",
+          "label": "Right shoulder",
+          "video": "06-right-shoulder.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 33.4,
+            "y": 20.84,
+            "w": 11.87,
+            "h": 5.27
           },
           "tier": "free"
         },
@@ -722,10 +696,36 @@
           "video": "24-left-hip.mp4",
           "region": {
             "shape": "rect",
-            "x": 54.69,
-            "y": 55.99,
-            "w": 7.81,
-            "h": 7.81
+            "x": 54.71,
+            "y": 55.95,
+            "w": 7.91,
+            "h": 7.73
+          },
+          "tier": "free"
+        },
+        {
+          "id": "23-right-hip",
+          "label": "Right hip",
+          "video": "23-right-hip.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 37.19,
+            "y": 55.57,
+            "w": 7.91,
+            "h": 7.63
+          },
+          "tier": "free"
+        },
+        {
+          "id": "22-lower-belly",
+          "label": "Lower belly",
+          "video": "22-lower-belly.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 42.31,
+            "y": 46.78,
+            "w": 15.34,
+            "h": 3.42
           },
           "tier": "free"
         },
@@ -735,23 +735,10 @@
           "video": "18-upper-chest.mp4",
           "region": {
             "shape": "rect",
-            "x": 44.43,
-            "y": 20.51,
-            "w": 11.23,
-            "h": 4.56
-          },
-          "tier": "free"
-        },
-        {
-          "id": "10-right-elbow",
-          "label": "Right elbow",
-          "video": "10-right-elbow.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 32.71,
-            "y": 39.06,
-            "w": 7.32,
-            "h": 5.86
+            "x": 44.29,
+            "y": 20.84,
+            "w": 11.38,
+            "h": 4.31
           },
           "tier": "free"
         },
@@ -761,10 +748,23 @@
           "video": "11-left-elbow.mp4",
           "region": {
             "shape": "rect",
-            "x": 60.06,
-            "y": 39.06,
-            "w": 7.32,
-            "h": 5.86
+            "x": 60.0,
+            "y": 39.1,
+            "w": 7.42,
+            "h": 6.09
+          },
+          "tier": "free"
+        },
+        {
+          "id": "10-right-elbow",
+          "label": "Right elbow",
+          "video": "10-right-elbow.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 32.75,
+            "y": 39.38,
+            "w": 7.42,
+            "h": 5.82
           },
           "tier": "free"
         },
@@ -774,10 +774,10 @@
           "video": "16-right-underarm.mp4",
           "region": {
             "shape": "rect",
-            "x": 32.71,
-            "y": 26.04,
-            "w": 5.37,
-            "h": 7.81
+            "x": 32.2,
+            "y": 26.3,
+            "w": 5.44,
+            "h": 7.87
           },
           "tier": "free"
         },
@@ -787,9 +787,9 @@
           "video": "17-left-underarm.mp4",
           "region": {
             "shape": "rect",
-            "x": 62.01,
-            "y": 26.04,
-            "w": 5.37,
+            "x": 62.16,
+            "y": 26.0,
+            "w": 5.44,
             "h": 7.81
           },
           "tier": "free"
@@ -800,36 +800,10 @@
           "video": "31-right-foot.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.97,
-            "y": 90.49,
-            "w": 6.84,
-            "h": 5.86
-          },
-          "tier": "free"
-        },
-        {
-          "id": "32-left-foot",
-          "label": "Left foot",
-          "video": "32-left-foot.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 50.29,
-            "y": 90.49,
-            "w": 6.84,
-            "h": 5.86
-          },
-          "tier": "free"
-        },
-        {
-          "id": "08-right-upper-arm",
-          "label": "Right upper arm",
-          "video": "08-right-upper-arm.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 32.71,
-            "y": 33.85,
-            "w": 7.32,
-            "h": 5.21
+            "x": 41.47,
+            "y": 89.33,
+            "w": 6.93,
+            "h": 5.91
           },
           "tier": "free"
         },
@@ -839,9 +813,35 @@
           "video": "09-left-upper-arm.mp4",
           "region": {
             "shape": "rect",
-            "x": 60.06,
-            "y": 33.85,
-            "w": 7.32,
+            "x": 60.47,
+            "y": 33.81,
+            "w": 7.42,
+            "h": 5.29
+          },
+          "tier": "free"
+        },
+        {
+          "id": "32-left-foot",
+          "label": "Left foot",
+          "video": "32-left-foot.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 49.73,
+            "y": 89.63,
+            "w": 6.93,
+            "h": 5.61
+          },
+          "tier": "free"
+        },
+        {
+          "id": "08-right-upper-arm",
+          "label": "Right upper arm",
+          "video": "08-right-upper-arm.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 32.24,
+            "y": 34.16,
+            "w": 7.42,
             "h": 5.21
           },
           "tier": "free"
@@ -852,10 +852,10 @@
           "video": "03-left-cheek.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.0,
-            "y": 9.77,
-            "w": 7.13,
-            "h": 5.21
+            "x": 49.97,
+            "y": 10.66,
+            "w": 6.61,
+            "h": 5.19
           },
           "tier": "free"
         },
@@ -865,10 +865,10 @@
           "video": "02-right-cheek.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.97,
-            "y": 9.77,
-            "w": 7.03,
-            "h": 5.21
+            "x": 43.46,
+            "y": 10.66,
+            "w": 6.52,
+            "h": 5.19
           },
           "tier": "free"
         },
@@ -878,10 +878,10 @@
           "video": "04-chin.mp4",
           "region": {
             "shape": "rect",
-            "x": 43.95,
-            "y": 14.97,
-            "w": 12.21,
-            "h": 2.93
+            "x": 44.36,
+            "y": 15.84,
+            "w": 11.32,
+            "h": 2.65
           },
           "tier": "free"
         },
@@ -891,10 +891,10 @@
           "video": "05-neck.mp4",
           "region": {
             "shape": "rect",
-            "x": 45.41,
-            "y": 17.9,
-            "w": 9.28,
-            "h": 2.93
+            "x": 45.72,
+            "y": 18.48,
+            "w": 8.6,
+            "h": 2.65
           },
           "tier": "free"
         },
@@ -904,10 +904,10 @@
           "video": "33-right-breast.mp4",
           "region": {
             "shape": "rect",
-            "x": 38.09,
-            "y": 26.04,
-            "w": 11.72,
-            "h": 8.46
+            "x": 37.86,
+            "y": 26.11,
+            "w": 11.87,
+            "h": 8.4
           },
           "tier": "taps"
         },
@@ -917,10 +917,10 @@
           "video": "34-left-breast.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 26.04,
-            "w": 11.72,
-            "h": 8.46
+            "x": 50.22,
+            "y": 26.11,
+            "w": 11.87,
+            "h": 8.4
           },
           "tier": "taps"
         },
@@ -930,10 +930,10 @@
           "video": "35-groin.mp4",
           "region": {
             "shape": "rect",
-            "x": 45.41,
-            "y": 55.99,
-            "w": 9.28,
-            "h": 7.16
+            "x": 45.28,
+            "y": 48.56,
+            "w": 9.4,
+            "h": 5.56
           },
           "tier": "taps"
         }
@@ -946,31 +946,18 @@
       "idle": "idle-nude.mp4",
       "poster": "web/poster.png",
       "aspectRatio": 0.6667,
-      "version": 2,
+      "version": 3,
       "actions": [
-        {
-          "id": "21-belly",
-          "label": "Belly",
-          "video": "21-belly.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 41.02,
-            "y": 41.67,
-            "w": 18.07,
-            "h": 7.81
-          },
-          "tier": "explicit"
-        },
         {
           "id": "25-right-thigh",
           "label": "Right thigh",
           "video": "25-right-thigh.mp4",
           "region": {
             "shape": "rect",
-            "x": 39.06,
-            "y": 63.8,
-            "w": 10.74,
-            "h": 10.42
+            "x": 38.41,
+            "y": 63.6,
+            "w": 11.14,
+            "h": 10.5
           },
           "tier": "explicit"
         },
@@ -980,36 +967,23 @@
           "video": "26-left-thigh.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 63.8,
-            "w": 10.74,
-            "h": 10.42
+            "x": 50.32,
+            "y": 63.54,
+            "w": 11.14,
+            "h": 10.45
           },
           "tier": "explicit"
         },
         {
-          "id": "22-lower-belly",
-          "label": "Lower belly",
-          "video": "22-lower-belly.mp4",
+          "id": "21-belly",
+          "label": "Belly",
+          "video": "21-belly.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.48,
-            "y": 49.48,
-            "w": 15.14,
-            "h": 6.51
-          },
-          "tier": "explicit"
-        },
-        {
-          "id": "29-right-shin",
-          "label": "Right shin",
-          "video": "29-right-shin.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 41.02,
-            "y": 81.38,
-            "w": 8.79,
-            "h": 9.11
+            "x": 40.91,
+            "y": 41.68,
+            "w": 18.74,
+            "h": 5.03
           },
           "tier": "explicit"
         },
@@ -1019,10 +993,23 @@
           "video": "30-left-shin.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 81.38,
-            "w": 8.79,
-            "h": 9.11
+            "x": 50.57,
+            "y": 81.26,
+            "w": 9.12,
+            "h": 9.18
+          },
+          "tier": "explicit"
+        },
+        {
+          "id": "29-right-shin",
+          "label": "Right shin",
+          "video": "29-right-shin.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 39.91,
+            "y": 81.35,
+            "w": 9.12,
+            "h": 9.16
           },
           "tier": "explicit"
         },
@@ -1032,10 +1019,10 @@
           "video": "19-right-ribs.mp4",
           "region": {
             "shape": "rect",
-            "x": 39.06,
-            "y": 34.51,
-            "w": 10.74,
-            "h": 7.16
+            "x": 38.88,
+            "y": 34.76,
+            "w": 11.14,
+            "h": 6.93
           },
           "tier": "explicit"
         },
@@ -1045,10 +1032,10 @@
           "video": "20-left-ribs.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 34.51,
-            "w": 10.74,
-            "h": 7.16
+            "x": 50.52,
+            "y": 34.76,
+            "w": 11.14,
+            "h": 6.93
           },
           "tier": "explicit"
         },
@@ -1058,23 +1045,10 @@
           "video": "01-forehead.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.97,
-            "y": 4.56,
-            "w": 14.16,
-            "h": 5.21
-          },
-          "tier": "explicit"
-        },
-        {
-          "id": "27-right-knee",
-          "label": "Right knee",
-          "video": "27-right-knee.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 40.04,
-            "y": 74.22,
-            "w": 9.77,
-            "h": 7.16
+            "x": 43.64,
+            "y": 4.98,
+            "w": 13.37,
+            "h": 5.57
           },
           "tier": "explicit"
         },
@@ -1084,36 +1058,23 @@
           "video": "28-left-knee.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 74.22,
-            "w": 9.77,
-            "h": 7.16
+            "x": 50.45,
+            "y": 74.0,
+            "w": 10.13,
+            "h": 7.26
           },
           "tier": "explicit"
         },
         {
-          "id": "07-left-shoulder",
-          "label": "Left shoulder",
-          "video": "07-left-shoulder.mp4",
+          "id": "27-right-knee",
+          "label": "Right knee",
+          "video": "27-right-knee.mp4",
           "region": {
             "shape": "rect",
-            "x": 54.69,
-            "y": 20.51,
-            "w": 12.21,
-            "h": 5.53
-          },
-          "tier": "explicit"
-        },
-        {
-          "id": "12-right-forearm",
-          "label": "Right forearm",
-          "video": "12-right-forearm.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 32.23,
-            "y": 44.92,
-            "w": 7.81,
-            "h": 8.46
+            "x": 39.15,
+            "y": 74.1,
+            "w": 10.13,
+            "h": 7.24
           },
           "tier": "explicit"
         },
@@ -1123,36 +1084,10 @@
           "video": "13-left-forearm.mp4",
           "region": {
             "shape": "rect",
-            "x": 60.06,
-            "y": 44.92,
-            "w": 7.81,
-            "h": 8.46
-          },
-          "tier": "explicit"
-        },
-        {
-          "id": "06-right-shoulder",
-          "label": "Right shoulder",
-          "video": "06-right-shoulder.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 33.69,
-            "y": 20.51,
-            "w": 11.72,
-            "h": 5.53
-          },
-          "tier": "explicit"
-        },
-        {
-          "id": "14-right-hand",
-          "label": "Right hand",
-          "video": "14-right-hand.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 32.23,
-            "y": 53.39,
-            "w": 8.79,
-            "h": 7.16
+            "x": 60.16,
+            "y": 45.47,
+            "w": 8.1,
+            "h": 8.93
           },
           "tier": "explicit"
         },
@@ -1162,10 +1097,62 @@
           "video": "15-left-hand.mp4",
           "region": {
             "shape": "rect",
-            "x": 59.08,
-            "y": 53.39,
-            "w": 8.79,
-            "h": 7.16
+            "x": 59.2,
+            "y": 54.42,
+            "w": 9.12,
+            "h": 7.74
+          },
+          "tier": "explicit"
+        },
+        {
+          "id": "12-right-forearm",
+          "label": "Right forearm",
+          "video": "12-right-forearm.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 32.24,
+            "y": 46.13,
+            "w": 8.1,
+            "h": 8.59
+          },
+          "tier": "explicit"
+        },
+        {
+          "id": "07-left-shoulder",
+          "label": "Left shoulder",
+          "video": "07-left-shoulder.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 55.09,
+            "y": 21.22,
+            "w": 12.66,
+            "h": 5.34
+          },
+          "tier": "explicit"
+        },
+        {
+          "id": "06-right-shoulder",
+          "label": "Right shoulder",
+          "video": "06-right-shoulder.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 33.31,
+            "y": 21.22,
+            "w": 12.15,
+            "h": 5.34
+          },
+          "tier": "explicit"
+        },
+        {
+          "id": "14-right-hand",
+          "label": "Right hand",
+          "video": "14-right-hand.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 31.84,
+            "y": 54.73,
+            "w": 9.12,
+            "h": 7.03
           },
           "tier": "explicit"
         },
@@ -1175,10 +1162,10 @@
           "video": "23-right-hip.mp4",
           "region": {
             "shape": "rect",
-            "x": 37.6,
-            "y": 55.99,
-            "w": 7.81,
-            "h": 7.81
+            "x": 37.24,
+            "y": 55.77,
+            "w": 8.1,
+            "h": 7.83
           },
           "tier": "explicit"
         },
@@ -1188,10 +1175,23 @@
           "video": "24-left-hip.mp4",
           "region": {
             "shape": "rect",
-            "x": 54.69,
-            "y": 55.99,
-            "w": 7.81,
-            "h": 7.81
+            "x": 55.01,
+            "y": 55.8,
+            "w": 8.1,
+            "h": 7.75
+          },
+          "tier": "explicit"
+        },
+        {
+          "id": "22-lower-belly",
+          "label": "Lower belly",
+          "video": "22-lower-belly.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 42.43,
+            "y": 46.71,
+            "w": 15.7,
+            "h": 3.43
           },
           "tier": "explicit"
         },
@@ -1201,10 +1201,10 @@
           "video": "18-upper-chest.mp4",
           "region": {
             "shape": "rect",
-            "x": 44.43,
-            "y": 20.51,
-            "w": 11.23,
-            "h": 4.56
+            "x": 44.45,
+            "y": 21.22,
+            "w": 11.65,
+            "h": 4.41
           },
           "tier": "explicit"
         },
@@ -1214,10 +1214,10 @@
           "video": "10-right-elbow.mp4",
           "region": {
             "shape": "rect",
-            "x": 32.71,
-            "y": 39.06,
-            "w": 7.32,
-            "h": 5.86
+            "x": 31.98,
+            "y": 39.97,
+            "w": 7.59,
+            "h": 6.16
           },
           "tier": "explicit"
         },
@@ -1227,10 +1227,10 @@
           "video": "11-left-elbow.mp4",
           "region": {
             "shape": "rect",
-            "x": 60.06,
-            "y": 39.06,
-            "w": 7.32,
-            "h": 5.86
+            "x": 60.58,
+            "y": 39.44,
+            "w": 7.59,
+            "h": 6.04
           },
           "tier": "explicit"
         },
@@ -1240,10 +1240,10 @@
           "video": "16-right-underarm.mp4",
           "region": {
             "shape": "rect",
-            "x": 32.71,
-            "y": 26.04,
-            "w": 5.37,
-            "h": 7.81
+            "x": 31.74,
+            "y": 26.84,
+            "w": 5.57,
+            "h": 7.8
           },
           "tier": "explicit"
         },
@@ -1253,23 +1253,10 @@
           "video": "17-left-underarm.mp4",
           "region": {
             "shape": "rect",
-            "x": 62.01,
-            "y": 26.04,
-            "w": 5.37,
-            "h": 7.81
-          },
-          "tier": "explicit"
-        },
-        {
-          "id": "31-right-foot",
-          "label": "Right foot",
-          "video": "31-right-foot.mp4",
-          "region": {
-            "shape": "rect",
-            "x": 42.97,
-            "y": 90.49,
-            "w": 6.84,
-            "h": 5.86
+            "x": 62.68,
+            "y": 26.46,
+            "w": 5.57,
+            "h": 7.73
           },
           "tier": "explicit"
         },
@@ -1279,10 +1266,23 @@
           "video": "32-left-foot.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 90.49,
-            "w": 6.84,
-            "h": 5.86
+            "x": 50.61,
+            "y": 90.44,
+            "w": 7.09,
+            "h": 5.77
+          },
+          "tier": "explicit"
+        },
+        {
+          "id": "31-right-foot",
+          "label": "Right foot",
+          "video": "31-right-foot.mp4",
+          "region": {
+            "shape": "rect",
+            "x": 41.84,
+            "y": 90.5,
+            "w": 7.09,
+            "h": 5.71
           },
           "tier": "explicit"
         },
@@ -1292,10 +1292,10 @@
           "video": "08-right-upper-arm.mp4",
           "region": {
             "shape": "rect",
-            "x": 32.71,
-            "y": 33.85,
-            "w": 7.32,
-            "h": 5.21
+            "x": 31.4,
+            "y": 34.64,
+            "w": 7.59,
+            "h": 5.33
           },
           "tier": "explicit"
         },
@@ -1305,10 +1305,10 @@
           "video": "09-left-upper-arm.mp4",
           "region": {
             "shape": "rect",
-            "x": 60.06,
-            "y": 33.85,
-            "w": 7.32,
-            "h": 5.21
+            "x": 60.87,
+            "y": 34.19,
+            "w": 7.59,
+            "h": 5.25
           },
           "tier": "explicit"
         },
@@ -1318,10 +1318,10 @@
           "video": "03-left-cheek.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.0,
-            "y": 9.77,
-            "w": 7.13,
-            "h": 5.21
+            "x": 50.27,
+            "y": 10.54,
+            "w": 6.73,
+            "h": 5.33
           },
           "tier": "explicit"
         },
@@ -1331,10 +1331,10 @@
           "video": "02-right-cheek.mp4",
           "region": {
             "shape": "rect",
-            "x": 42.97,
-            "y": 9.77,
-            "w": 7.03,
-            "h": 5.21
+            "x": 43.64,
+            "y": 10.54,
+            "w": 6.64,
+            "h": 5.33
           },
           "tier": "explicit"
         },
@@ -1344,10 +1344,10 @@
           "video": "04-chin.mp4",
           "region": {
             "shape": "rect",
-            "x": 43.95,
-            "y": 14.97,
-            "w": 12.21,
-            "h": 2.93
+            "x": 44.56,
+            "y": 15.87,
+            "w": 11.53,
+            "h": 2.83
           },
           "tier": "explicit"
         },
@@ -1357,10 +1357,10 @@
           "video": "05-neck.mp4",
           "region": {
             "shape": "rect",
-            "x": 45.41,
-            "y": 17.9,
-            "w": 9.28,
-            "h": 2.93
+            "x": 45.94,
+            "y": 18.7,
+            "w": 8.76,
+            "h": 2.83
           },
           "tier": "explicit"
         },
@@ -1370,10 +1370,10 @@
           "video": "33-right-breast.mp4",
           "region": {
             "shape": "rect",
-            "x": 38.09,
-            "y": 26.04,
-            "w": 11.72,
-            "h": 8.46
+            "x": 37.87,
+            "y": 26.56,
+            "w": 12.15,
+            "h": 8.18
           },
           "tier": "explicit"
         },
@@ -1383,10 +1383,10 @@
           "video": "34-left-breast.mp4",
           "region": {
             "shape": "rect",
-            "x": 50.29,
-            "y": 26.04,
-            "w": 11.72,
-            "h": 8.46
+            "x": 50.52,
+            "y": 26.56,
+            "w": 12.15,
+            "h": 8.18
           },
           "tier": "explicit"
         },
@@ -1396,10 +1396,10 @@
           "video": "35-groin.mp4",
           "region": {
             "shape": "rect",
-            "x": 45.41,
-            "y": 55.99,
-            "w": 9.28,
-            "h": 7.16
+            "x": 45.46,
+            "y": 48.48,
+            "w": 9.62,
+            "h": 5.64
           },
           "tier": "explicit"
         }

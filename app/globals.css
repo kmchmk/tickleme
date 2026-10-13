@@ -468,7 +468,9 @@ a.card:active {
 }
 
 .hit--shown {
-  fill: transparent;
+  fill: rgba(255, 255, 255, 0.12);
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-dasharray: 4 3;
 }
 
 .hint-dots,
@@ -750,8 +752,9 @@ a.card:active {
 
 /* ---------- Locked tap locations ---------- */
 
-.hit--locked {
-  fill: transparent;
+.hit--shown.hit--locked {
+  fill: rgba(255, 122, 89, 0.22);
+  stroke: var(--accent);
 }
 
 .lock-dot {

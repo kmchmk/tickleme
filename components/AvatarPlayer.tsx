@@ -226,7 +226,7 @@ export default function AvatarPlayer({
     const y = ((e.clientY - box.top) / box.height) * 100;
     const id = (e.target as Element).closest("[data-action]")?.getAttribute("data-action");
     const action = manifest.actions.find((a) => a.id === id);
-    const ripple = { id: ++rippleId.current, x, y, label: action ? (action.locked ? "🔒 Locked" : shortLabel(action.label)) : undefined };
+    const ripple = { id: ++rippleId.current, x, y, label: action && !action.locked ? shortLabel(action.label) : undefined };
     setRipples((r) => [...r, ripple]);
     setTimeout(() => setRipples((r) => r.filter((p) => p.id !== ripple.id)), 900);
     if (!action) return;
@@ -316,22 +316,22 @@ export default function AvatarPlayer({
         </svg>
       )}
 
-      {urls && (
+      {/* Padlocks only show while "Show touch spots" is on; before that a locked spot looks like any other. */}
+      {urls && showHints && (
         <div className="hint-dots" aria-hidden>
-          {manifest.actions.map((a) => {
-            if (!a.locked && !showHints) return null;
-            const [x, y] = regionCenter(a.region);
-            return a.locked ? (
-              <span key={a.id} className="lock-dot" style={{ left: `${x}%`, top: `${y}%` }}>
-                <svg viewBox="0 0 24 24">
-                  <rect x="5" y="11" width="14" height="9" rx="2" />
-                  <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-                </svg>
-              </span>
-            ) : (
-              <span key={a.id} className="hint-dot" style={{ left: `${x}%`, top: `${y}%` }} />
-            );
-          })}
+          {manifest.actions
+            .filter((a) => a.locked)
+            .map((a) => {
+              const [x, y] = regionCenter(a.region);
+              return (
+                <span key={a.id} className="lock-dot" style={{ left: `${x}%`, top: `${y}%` }}>
+                  <svg viewBox="0 0 24 24">
+                    <rect x="5" y="11" width="14" height="9" rx="2" />
+                    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                  </svg>
+                </span>
+              );
+            })}
         </div>
       )}
 

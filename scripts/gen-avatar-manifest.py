@@ -17,47 +17,14 @@ be a BLURRED teaser. PLACEHOLDER maps each zone to the older clip it was copied 
 until the real clip is generated (see scripts/placeholder-clips.mjs).
 """
 import json
+import os
 
 def R(x, y, w, h): return {"shape": "rect", "x": round(x * 100, 2), "y": round(y * 100, 2), "w": round(w * 100, 2), "h": round(h * 100, 2)}
 
-# (number, name, label, (x, y, w, h), placeholder source clip, locked)
-ZONES = [
-    (1, "forehead", "Forehead", (0.4297, 0.0456, 0.1416, 0.0521), "08-cheek", False),
-    (2, "right-cheek", "Right cheek", (0.4297, 0.0977, 0.0703, 0.0521), "08-cheek", False),
-    (3, "left-cheek", "Left cheek", (0.5000, 0.0977, 0.0713, 0.0521), "08-cheek", False),
-    (4, "chin", "Chin", (0.4395, 0.1497, 0.1221, 0.0293), "07-neck", False),
-    (5, "neck", "Neck", (0.4541, 0.1790, 0.0928, 0.0293), "07-neck", False),
-    (6, "right-shoulder", "Right shoulder", (0.3369, 0.2051, 0.1172, 0.0553), "05-right-shoulder", False),
-    (7, "left-shoulder", "Left shoulder", (0.5469, 0.2051, 0.1221, 0.0553), "06-left-shoulder", False),
-    (8, "right-upper-arm", "Right upper arm", (0.3271, 0.3385, 0.0732, 0.0521), "03-right-forearm", False),
-    (9, "left-upper-arm", "Left upper arm", (0.6006, 0.3385, 0.0732, 0.0521), "04-left-forearm", False),
-    (10, "right-elbow", "Right elbow", (0.3271, 0.3906, 0.0732, 0.0586), "03-right-forearm", False),
-    (11, "left-elbow", "Left elbow", (0.6006, 0.3906, 0.0732, 0.0586), "04-left-forearm", False),
-    (12, "right-forearm", "Right forearm", (0.3223, 0.4492, 0.0781, 0.0846), "03-right-forearm", False),
-    (13, "left-forearm", "Left forearm", (0.6006, 0.4492, 0.0781, 0.0846), "04-left-forearm", False),
-    (14, "right-hand", "Right hand", (0.3223, 0.5339, 0.0879, 0.0716), "01-right-hand", False),
-    (15, "left-hand", "Left hand", (0.5908, 0.5339, 0.0879, 0.0716), "02-left-hand", False),
-    (16, "right-underarm", "Right underarm", (0.3271, 0.2604, 0.0537, 0.0781), "09-right-underarm", False),
-    (17, "left-underarm", "Left underarm", (0.6201, 0.2604, 0.0537, 0.0781), "10-left-underarm", False),
-    (18, "upper-chest", "Upper chest", (0.4443, 0.2051, 0.1123, 0.0456), "14-upper-chest", False),
-    (19, "right-ribs", "Right ribs", (0.3906, 0.3451, 0.1074, 0.0716), "12-right-ribs", False),
-    (20, "left-ribs", "Left ribs", (0.5029, 0.3451, 0.1074, 0.0716), "13-left-ribs", False),
-    (21, "belly", "Belly", (0.4102, 0.4167, 0.1807, 0.0781), "11-belly", False),
-    (22, "lower-belly", "Lower belly", (0.4248, 0.4948, 0.1514, 0.0651), "11-belly", False),
-    (23, "right-hip", "Right hip", (0.3760, 0.5599, 0.0781, 0.0781), "15-right-hip", False),
-    (24, "left-hip", "Left hip", (0.5469, 0.5599, 0.0781, 0.0781), "16-left-hip", False),
-    (25, "right-thigh", "Right thigh", (0.3906, 0.6380, 0.1074, 0.1042), "17-right-thigh", False),
-    (26, "left-thigh", "Left thigh", (0.5029, 0.6380, 0.1074, 0.1042), "18-left-thigh", False),
-    (27, "right-knee", "Right knee", (0.4004, 0.7422, 0.0977, 0.0716), "17-right-thigh", False),
-    (28, "left-knee", "Left knee", (0.5029, 0.7422, 0.0977, 0.0716), "18-left-thigh", False),
-    (29, "right-shin", "Right shin", (0.4102, 0.8138, 0.0879, 0.0911), "19-right-foot", False),
-    (30, "left-shin", "Left shin", (0.5029, 0.8138, 0.0879, 0.0911), "20-left-foot", False),
-    (31, "right-foot", "Right foot", (0.4297, 0.9049, 0.0684, 0.0586), "19-right-foot", False),
-    (32, "left-foot", "Left foot", (0.5029, 0.9049, 0.0684, 0.0586), "20-left-foot", False),
-    (33, "right-breast", "Right breast", (0.3809, 0.2604, 0.1172, 0.0846), "05-right-shoulder", True),
-    (34, "left-breast", "Left breast", (0.5029, 0.2604, 0.1172, 0.0846), "06-left-shoulder", True),
-    (35, "groin", "Groin", (0.4541, 0.5599, 0.0928, 0.0716), "11-belly", True),
-]
+# The hand-drawn reference zones (fractions of the reference still). Used as the fallback and as the
+# names/labels/placeholders; each outfit's real boxes come from content/zones/<set>.json, which
+# scripts/gen-zones.py computes from the outfit's own body landmarks.
+ZONES = [(z["n"], z["name"], z["label"], tuple(z["box"]), z["placeholder"], z["locked"]) for z in json.load(open("scripts/reference-zones.json"))]
 LOCKED = {n for n, *_, locked in ZONES if locked}
 
 def clip(n, name): return f"{n:02d}-{name}"
@@ -67,8 +34,16 @@ def draw_order(z):
     n, name, label, (x, y, w, h), src, locked = z
     return (locked, -w * h)
 
+def zone_boxes(set_):
+    path = f"content/zones/{set_}.json"
+    if not os.path.exists(path):
+        print(f"warning: no computed zones for {set_}, using the reference zones")
+        return {name: box for n, name, label, box, src, locked in ZONES}
+    return {k: tuple(v) for k, v in json.load(open(path)).items()}
+
 def variant(set_, bucket, access, idle, poster, version, tier_of):
-    acts = sorted(ZONES, key=draw_order)
+    boxes = zone_boxes(set_)
+    acts = sorted([(n, name, label, boxes[name], src, locked) for n, name, label, box, src, locked in ZONES], key=draw_order)
     return {
         "set": set_, "bucket": bucket, "access": access, "idle": idle, "poster": poster,
         "aspectRatio": round(480 / 720, 4), "version": version,
@@ -93,9 +68,9 @@ def make(id_, name, jeans, bikini, nude):
     }
 
 AVATARS = [
-    make("avatar-1", "Avatar 1", ("woman-in-jeans", 4), ("woman-in-bikini", 6), ("woman-in-nude", 2)),
-    make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 2), ("white-woman-in-bikini", 2), ("white-woman-in-nude", 2)),
-    make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 2), ("black-woman-in-bikini", 2), ("black-woman-in-nude", 2)),
+    make("avatar-1", "Avatar 1", ("woman-in-jeans", 5), ("woman-in-bikini", 7), ("woman-in-nude", 3)),
+    make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 3), ("white-woman-in-bikini", 3), ("white-woman-in-nude", 3)),
+    make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 3), ("black-woman-in-bikini", 3), ("black-woman-in-nude", 3)),
 ]
 for avatar in AVATARS:
     open(f"content/avatars/{avatar['id']}.json", "w").write(json.dumps(avatar, indent=2) + "\n")

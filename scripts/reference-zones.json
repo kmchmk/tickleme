@@ -1,0 +1,457 @@
+[
+ {
+  "n": 1,
+  "name": "forehead",
+  "label": "Forehead",
+  "box": [
+   0.4297,
+   0.0456,
+   0.1416,
+   0.0521
+  ],
+  "placeholder": "08-cheek",
+  "locked": false
+ },
+ {
+  "n": 2,
+  "name": "right-cheek",
+  "label": "Right cheek",
+  "box": [
+   0.4297,
+   0.0977,
+   0.0703,
+   0.0521
+  ],
+  "placeholder": "08-cheek",
+  "locked": false
+ },
+ {
+  "n": 3,
+  "name": "left-cheek",
+  "label": "Left cheek",
+  "box": [
+   0.5,
+   0.0977,
+   0.0713,
+   0.0521
+  ],
+  "placeholder": "08-cheek",
+  "locked": false
+ },
+ {
+  "n": 4,
+  "name": "chin",
+  "label": "Chin",
+  "box": [
+   0.4395,
+   0.1497,
+   0.1221,
+   0.0293
+  ],
+  "placeholder": "07-neck",
+  "locked": false
+ },
+ {
+  "n": 5,
+  "name": "neck",
+  "label": "Neck",
+  "box": [
+   0.4541,
+   0.179,
+   0.0928,
+   0.0293
+  ],
+  "placeholder": "07-neck",
+  "locked": false
+ },
+ {
+  "n": 6,
+  "name": "right-shoulder",
+  "label": "Right shoulder",
+  "box": [
+   0.3369,
+   0.2051,
+   0.1172,
+   0.0553
+  ],
+  "placeholder": "05-right-shoulder",
+  "locked": false
+ },
+ {
+  "n": 7,
+  "name": "left-shoulder",
+  "label": "Left shoulder",
+  "box": [
+   0.5469,
+   0.2051,
+   0.1221,
+   0.0553
+  ],
+  "placeholder": "06-left-shoulder",
+  "locked": false
+ },
+ {
+  "n": 8,
+  "name": "right-upper-arm",
+  "label": "Right upper arm",
+  "box": [
+   0.3271,
+   0.3385,
+   0.0732,
+   0.0521
+  ],
+  "placeholder": "03-right-forearm",
+  "locked": false
+ },
+ {
+  "n": 9,
+  "name": "left-upper-arm",
+  "label": "Left upper arm",
+  "box": [
+   0.6006,
+   0.3385,
+   0.0732,
+   0.0521
+  ],
+  "placeholder": "04-left-forearm",
+  "locked": false
+ },
+ {
+  "n": 10,
+  "name": "right-elbow",
+  "label": "Right elbow",
+  "box": [
+   0.3271,
+   0.3906,
+   0.0732,
+   0.0586
+  ],
+  "placeholder": "03-right-forearm",
+  "locked": false
+ },
+ {
+  "n": 11,
+  "name": "left-elbow",
+  "label": "Left elbow",
+  "box": [
+   0.6006,
+   0.3906,
+   0.0732,
+   0.0586
+  ],
+  "placeholder": "04-left-forearm",
+  "locked": false
+ },
+ {
+  "n": 12,
+  "name": "right-forearm",
+  "label": "Right forearm",
+  "box": [
+   0.3223,
+   0.4492,
+   0.0781,
+   0.0846
+  ],
+  "placeholder": "03-right-forearm",
+  "locked": false
+ },
+ {
+  "n": 13,
+  "name": "left-forearm",
+  "label": "Left forearm",
+  "box": [
+   0.6006,
+   0.4492,
+   0.0781,
+   0.0846
+  ],
+  "placeholder": "04-left-forearm",
+  "locked": false
+ },
+ {
+  "n": 14,
+  "name": "right-hand",
+  "label": "Right hand",
+  "box": [
+   0.3223,
+   0.5339,
+   0.0879,
+   0.0716
+  ],
+  "placeholder": "01-right-hand",
+  "locked": false
+ },
+ {
+  "n": 15,
+  "name": "left-hand",
+  "label": "Left hand",
+  "box": [
+   0.5908,
+   0.5339,
+   0.0879,
+   0.0716
+  ],
+  "placeholder": "02-left-hand",
+  "locked": false
+ },
+ {
+  "n": 16,
+  "name": "right-underarm",
+  "label": "Right underarm",
+  "box": [
+   0.3271,
+   0.2604,
+   0.0537,
+   0.0781
+  ],
+  "placeholder": "09-right-underarm",
+  "locked": false
+ },
+ {
+  "n": 17,
+  "name": "left-underarm",
+  "label": "Left underarm",
+  "box": [
+   0.6201,
+   0.2604,
+   0.0537,
+   0.0781
+  ],
+  "placeholder": "10-left-underarm",
+  "locked": false
+ },
+ {
+  "n": 18,
+  "name": "upper-chest",
+  "label": "Upper chest",
+  "box": [
+   0.4443,
+   0.2051,
+   0.1123,
+   0.0456
+  ],
+  "placeholder": "14-upper-chest",
+  "locked": false
+ },
+ {
+  "n": 19,
+  "name": "right-ribs",
+  "label": "Right ribs",
+  "box": [
+   0.3906,
+   0.3451,
+   0.1074,
+   0.0716
+  ],
+  "placeholder": "12-right-ribs",
+  "locked": false
+ },
+ {
+  "n": 20,
+  "name": "left-ribs",
+  "label": "Left ribs",
+  "box": [
+   0.5029,
+   0.3451,
+   0.1074,
+   0.0716
+  ],
+  "placeholder": "13-left-ribs",
+  "locked": false
+ },
+ {
+  "n": 21,
+  "name": "belly",
+  "label": "Belly",
+  "box": [
+   0.4102,
+   0.4167,
+   0.1807,
+   0.0781
+  ],
+  "placeholder": "11-belly",
+  "locked": false
+ },
+ {
+  "n": 22,
+  "name": "lower-belly",
+  "label": "Lower belly",
+  "box": [
+   0.4248,
+   0.4948,
+   0.1514,
+   0.0651
+  ],
+  "placeholder": "11-belly",
+  "locked": false
+ },
+ {
+  "n": 23,
+  "name": "right-hip",
+  "label": "Right hip",
+  "box": [
+   0.376,
+   0.5599,
+   0.0781,
+   0.0781
+  ],
+  "placeholder": "15-right-hip",
+  "locked": false
+ },
+ {
+  "n": 24,
+  "name": "left-hip",
+  "label": "Left hip",
+  "box": [
+   0.5469,
+   0.5599,
+   0.0781,
+   0.0781
+  ],
+  "placeholder": "16-left-hip",
+  "locked": false
+ },
+ {
+  "n": 25,
+  "name": "right-thigh",
+  "label": "Right thigh",
+  "box": [
+   0.3906,
+   0.638,
+   0.1074,
+   0.1042
+  ],
+  "placeholder": "17-right-thigh",
+  "locked": false
+ },
+ {
+  "n": 26,
+  "name": "left-thigh",
+  "label": "Left thigh",
+  "box": [
+   0.5029,
+   0.638,
+   0.1074,
+   0.1042
+  ],
+  "placeholder": "18-left-thigh",
+  "locked": false
+ },
+ {
+  "n": 27,
+  "name": "right-knee",
+  "label": "Right knee",
+  "box": [
+   0.4004,
+   0.7422,
+   0.0977,
+   0.0716
+  ],
+  "placeholder": "17-right-thigh",
+  "locked": false
+ },
+ {
+  "n": 28,
+  "name": "left-knee",
+  "label": "Left knee",
+  "box": [
+   0.5029,
+   0.7422,
+   0.0977,
+   0.0716
+  ],
+  "placeholder": "18-left-thigh",
+  "locked": false
+ },
+ {
+  "n": 29,
+  "name": "right-shin",
+  "label": "Right shin",
+  "box": [
+   0.4102,
+   0.8138,
+   0.0879,
+   0.0911
+  ],
+  "placeholder": "19-right-foot",
+  "locked": false
+ },
+ {
+  "n": 30,
+  "name": "left-shin",
+  "label": "Left shin",
+  "box": [
+   0.5029,
+   0.8138,
+   0.0879,
+   0.0911
+  ],
+  "placeholder": "20-left-foot",
+  "locked": false
+ },
+ {
+  "n": 31,
+  "name": "right-foot",
+  "label": "Right foot",
+  "box": [
+   0.4297,
+   0.9049,
+   0.0684,
+   0.0586
+  ],
+  "placeholder": "19-right-foot",
+  "locked": false
+ },
+ {
+  "n": 32,
+  "name": "left-foot",
+  "label": "Left foot",
+  "box": [
+   0.5029,
+   0.9049,
+   0.0684,
+   0.0586
+  ],
+  "placeholder": "20-left-foot",
+  "locked": false
+ },
+ {
+  "n": 33,
+  "name": "right-breast",
+  "label": "Right breast",
+  "box": [
+   0.3809,
+   0.2604,
+   0.1172,
+   0.0846
+  ],
+  "placeholder": "05-right-shoulder",
+  "locked": true
+ },
+ {
+  "n": 34,
+  "name": "left-breast",
+  "label": "Left breast",
+  "box": [
+   0.5029,
+   0.2604,
+   0.1172,
+   0.0846
+  ],
+  "placeholder": "06-left-shoulder",
+  "locked": true
+ },
+ {
+  "n": 35,
+  "name": "groin",
+  "label": "Groin",
+  "box": [
+   0.4541,
+   0.5599,
+   0.0928,
+   0.0716
+  ],
+  "placeholder": "11-belly",
+  "locked": true
+ }
+]
