@@ -2,6 +2,7 @@ import "server-only";
 import { query } from "./db";
 import { currentUserId } from "./auth";
 import { dbConfigured } from "./db";
+import { applyPendingGrants } from "./grants";
 import type { Viewer } from "./types";
 
 export const GUEST: Viewer = { signedIn: false, ageConfirmed: false, owned: [] };
@@ -12,6 +13,8 @@ export async function loadViewer(): Promise<{ userId: string | null; viewer: Vie
   if (!userId) return { userId: null, viewer: GUEST };
   if (!dbConfigured()) return { userId, viewer: { signedIn: true, ageConfirmed: false, owned: [] } };
   try {
+    const checked = await query("select 1 from grant_checks where user_id = $1", [userId]);
+    if (!checked[0]) await applyPendingGrants(userId).catch((e) => console.error("pending grants failed", e)); // once per user
     const [profile, ents] = await Promise.all([
       query("select age_confirmed_at from profiles where user_id = $1", [userId]),
       query("select product, avatar_id from entitlements where user_id = $1", [userId]),

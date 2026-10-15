@@ -27,5 +27,37 @@ create table if not exists entitlements (
   product text not null check (product in ('taps','explicit','bundle')),
   order_id uuid references orders(id),
   created_at timestamptz not null default now(),
-  primary key (user_id, avatar_id, product)
+  source text not null default 'payment' check (source in ('payment','admin')),  -- who gave the access
+  granted_by text,                          -- admin email, for source = 'admin'
+  note text,
+  primary key (user_id, avatar_id, product, source)
+);
+
+-- Access an admin promised to an email address that has not signed up yet; applied at its first sign-in.
+create table if not exists pending_grants (
+  email text not null,                      -- lower case
+  avatar_id text not null,
+  product text not null check (product in ('taps','explicit','bundle')),
+  granted_by text not null,
+  note text,
+  created_at timestamptz not null default now(),
+  primary key (email, avatar_id, product)
+);
+
+-- Users whose pending grants have been looked at (done once, at the first sign-in).
+create table if not exists grant_checks (
+  user_id text primary key,
+  checked_at timestamptz not null default now()
+);
+
+create table if not exists admin_audit (
+  id bigserial primary key,
+  at timestamptz not null default now(),
+  actor text not null,                      -- admin email
+  action text not null,                     -- grant | revoke | invite | revoke_pending
+  target_user_id text,
+  target_email text,
+  avatar_id text,
+  product text,
+  note text
 );

@@ -65,7 +65,7 @@ export async function fulfill(orderId: string, signature: string, payer: string)
      ), ent as (
        insert into entitlements (user_id, avatar_id, product, order_id)
        select user_id, avatar_id, product, id from upd
-       on conflict (user_id, avatar_id, product) do nothing returning 1
+       on conflict (user_id, avatar_id, product, source) do nothing returning 1
      )
      select (select count(*) from upd) as paid`,
     [orderId, signature, payer],

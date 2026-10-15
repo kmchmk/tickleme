@@ -1097,3 +1097,165 @@ a.card:active {
     padding: 6px 12px 14px;
   }
 }
+
+/* ---------- Admin ---------- */
+
+.admin {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: calc(20px + var(--safe-t)) 16px calc(40px + var(--safe-b));
+  display: grid;
+  gap: 16px;
+}
+.adm-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.adm-head h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+}
+.adm-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+.adm-card h2,
+.adm-card h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.adm-card h3 {
+  font-size: 15px;
+  margin-top: 8px;
+}
+.adm-dim {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+.adm-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.adm-form .adm-input {
+  flex: 1 1 160px;
+}
+.adm-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+}
+.adm-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.adm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.adm-btn--main {
+  background: var(--accent);
+  color: #1b1020;
+  border-color: transparent;
+}
+.adm-btn--quiet {
+  background: transparent;
+  color: var(--muted);
+}
+.adm-table-wrap {
+  overflow-x: auto;
+}
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.adm-table th,
+.adm-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.adm-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+}
+.adm-table tbody tr[class] {
+  cursor: pointer;
+}
+.adm-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.adm-sel {
+  background: rgba(255, 122, 89, 0.12);
+}
+.adm-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 4px 4px 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 600;
+}
+.adm-tag--paid {
+  background: rgba(80, 200, 120, 0.18);
+  border-color: rgba(80, 200, 120, 0.5);
+}
+.adm-tag--admin {
+  background: rgba(255, 122, 89, 0.18);
+  border-color: rgba(255, 122, 89, 0.55);
+}
+.adm-tag button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.adm-notice {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(80, 200, 120, 0.15);
+  border: 1px solid rgba(80, 200, 120, 0.4);
+}
+.adm-notice--bad {
+  background: rgba(230, 60, 60, 0.15);
+  border-color: rgba(230, 60, 60, 0.45);
+}
+.adm-pager {
+  justify-content: space-between;
+}
+.join {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
