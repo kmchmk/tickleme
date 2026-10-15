@@ -47,17 +47,21 @@ def variant(set_, bucket, access, idle, poster, version, tier_of):
         ],
     }
 
-def make(id_, name, jeans, bikini, nude):
-    """Each argument is (set folder, version)."""
+def make(id_, name, jeans, bikini, nude, labels=None, idles=("jeans", "bikini", "nude")):
+    """Each of jeans/bikini/nude is (set folder, version). `labels` renames the first two outfits on screen
+    (e.g. Saree / Underwear); `idles` are the idle file suffixes (idle-<x>.mp4)."""
+    labels = labels or {}
+    def v(key, args, bucket, access, poster, tier):
+        out = variant(args[0], bucket, access, f"idle-{idles[('jeans', 'bikini', 'nude').index(key)]}.mp4", poster, args[1], tier)
+        return {**({"label": labels[key]} if key in labels else {}), **out}
     return {
         "id": id_,
         "name": name,
         "pricing": {"taps": 0.69, "explicit": 0.69, "bundle": 0.99},   # USDC
         "variants": {
-            "jeans": variant(jeans[0], "public", "guest", "idle-jeans.mp4", "poster.jpg", jeans[1], lambda n: "taps" if n in LOCKED else "free"),
-            "bikini": variant(bikini[0], "private", "member", "idle-bikini.mp4", "poster.jpg", bikini[1],
-                              lambda n: "taps" if n in LOCKED else "free"),
-            "explicit": variant(nude[0], "private", "paid", "idle-nude.mp4", "web/poster.png", nude[1], lambda n: "explicit"),
+            "jeans": v("jeans", jeans, "public", "guest", "poster.jpg", lambda n: "taps" if n in LOCKED else "free"),
+            "bikini": v("bikini", bikini, "private", "member", "poster.jpg", lambda n: "taps" if n in LOCKED else "free"),
+            "explicit": v("nude", nude, "private", "paid", "web/poster.png", lambda n: "explicit"),
         },
     }
 
@@ -66,6 +70,8 @@ AVATARS = [
     make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 6), ("white-woman-in-bikini", 5), ("white-woman-in-nude", 5)),
     make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 5), ("black-woman-in-bikini", 5), ("black-woman-in-nude", 5)),
     make("avatar-4", "Avatar 4", ("asian-woman-in-jeans", 2), ("asian-woman-in-bikini", 2), ("asian-woman-in-nude", 1)),
+    make("avatar-5", "Avatar 5", ("south-indian-woman-in-saree", 1), ("south-indian-woman-in-underwear", 1), ("south-indian-woman-in-nude", 1),
+         labels={"jeans": "Saree", "bikini": "Underwear"}, idles=("saree", "underwear", "nude")),
 ]
 for avatar in AVATARS:
     open(f"content/avatars/{avatar['id']}.json", "w").write(json.dumps(avatar, indent=2) + "\n")

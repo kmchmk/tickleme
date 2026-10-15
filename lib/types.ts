@@ -32,6 +32,8 @@ export interface ActionDef {
 }
 
 export interface VariantDef {
+  /** Outfit name shown on the chip/tab when it isn't the default (Jeans / Bikini / Explicit). */
+  label?: string;
   /** Folder under avatars/ in the bucket, e.g. "woman-in-jeans". */
   set: string;
   /** Where the clips live. Private clips are only handed out as short-lived signed links. */

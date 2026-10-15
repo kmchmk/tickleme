@@ -8,6 +8,7 @@ import type { VariantKey, Viewer } from "@/lib/types";
 import { useViewer } from "./viewer";
 
 const LABEL: Record<VariantKey, string> = { jeans: "Jeans", bikini: "Bikini", explicit: "Explicit" };
+const labelOf = (avatar: AvatarSummary, k: VariantKey) => avatar.variants[k].label ?? LABEL[k];
 const ORDER: VariantKey[] = ["jeans", "bikini", "explicit"];
 const GUEST: Viewer = { signedIn: false, ageConfirmed: false, owned: [] };
 
@@ -32,7 +33,7 @@ export default function AvatarCard({ avatar }: { avatar: AvatarSummary }) {
 
   return (
     <div className="card card--avatar">
-      <Link href={`/a/${avatar.id}?v=${selected}`} className="card-link" aria-label={`Open ${avatar.name}, ${LABEL[selected]}`}>
+      <Link href={`/a/${avatar.id}?v=${selected}`} className="card-link" aria-label={`Open ${avatar.name}, ${labelOf(avatar, selected)}`}>
         <div className="card-media" style={{ "--ar": v.aspectRatio } as React.CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={v.poster} alt="" loading="lazy" className={open ? "" : "dim"} />
@@ -52,7 +53,7 @@ export default function AvatarCard({ avatar }: { avatar: AvatarSummary }) {
           const locked = !variantGate(avatar.id, { access: avatar.variants[k].access }, viewer ?? GUEST).ok;
           return (
             <button key={k} type="button" role="tab" aria-selected={selected === k} className={`chip ${selected === k ? "chip--on" : ""}`} onClick={() => setSelected(k)}>
-              {LABEL[k]}
+              {labelOf(avatar, k)}
               {locked && <Lock />}
             </button>
           );

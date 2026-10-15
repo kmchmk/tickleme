@@ -12,6 +12,7 @@ import { useViewer } from "./viewer";
 const HINTS_SEEN_KEY = "tickleme:hints-seen";
 const priceLabel = (usdc: number) => usdc.toFixed(2);
 const LABEL: Record<VariantKey, string> = { jeans: "Jeans", bikini: "Bikini", explicit: "Explicit" };
+const labelOf = (a: AvatarSummary, k: VariantKey) => a.variants[k].label ?? LABEL[k];
 const ORDER: VariantKey[] = ["jeans", "bikini", "explicit"];
 const SUB: Record<VariantKey, (a: AvatarSummary) => string> = {
   jeans: () => "Open to everyone",
@@ -98,7 +99,7 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
   const manifest = load.status === "ready" ? load.manifest : null;
   const gate = load.status === "gated" ? load.reason : null;
   const lockedCount = manifest ? manifest.actions.filter((a) => a.locked).length : 0;
-  const mention = variant === "explicit" ? "The explicit version" : "The bikini version";
+  const mention = variant === "explicit" ? "The explicit version" : `The ${labelOf(avatar, variant).toLowerCase()} version`;
   const autoOpen = variant !== "explicit";
   const showGate = autoOpen ? modal?.type !== "closed" && modal?.type !== "paywall" : modal?.type === "gate";
   const dismissGate = () => setModal(autoOpen ? { type: "closed" } : null);
@@ -122,7 +123,7 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
       <div className="tabs" role="tablist" aria-label="Outfit">
         {ORDER.map((k) => (
           <button key={k} type="button" role="tab" aria-selected={variant === k} className={`tab ${variant === k ? "tab--on" : ""}`} onClick={() => pick(k)}>
-            <span>{LABEL[k]}</span>
+            <span>{labelOf(avatar, k)}</span>
             <small>{SUB[k](avatar)}</small>
           </button>
         ))}
@@ -184,7 +185,7 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
           shows the blurred teaser, and its dialogs (sign-in, age, payment) only open when the user clicks Unlock. */}
       {gate && showGate && (
         <>
-          {gate === "signin" && <SignInModal why={`The ${LABEL[variant].toLowerCase()} outfit is for signed-in members.`} onClose={dismissGate} />}
+          {gate === "signin" && <SignInModal why={`The ${labelOf(avatar, variant).toLowerCase()} outfit is for signed-in members.`} onClose={dismissGate} />}
           {gate === "age" && <AgeModal mention={mention} onConfirmed={() => void refresh()} onClose={dismissGate} />}
           {gate === "purchase" && <PaywallModal avatar={avatar} need="explicit" onClose={dismissGate} onPaid={() => void refresh()} />}
         </>
