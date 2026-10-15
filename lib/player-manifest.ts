@@ -2,7 +2,7 @@ import "server-only";
 import { actionLock, variantGate } from "./access";
 import { objectKey, posterUrl } from "./avatars";
 import { fileUrl } from "./storage";
-import type { AvatarDef, PlayerManifest, VariantKey, Viewer } from "./types";
+import type { AvatarBundle, AvatarDef, PlayerManifest, TransitionSet, VariantKey, Viewer } from "./types";
 import type { Gate } from "./access";
 
 /**
@@ -43,4 +43,34 @@ export async function buildPlayerManifest(
       actions,
     },
   };
+}
+
+/**
+ * Transition clips for the pairs of outfits this viewer may play. A pair belongs to its lower outfit
+ * (jeans for jeans <-> bikini, bikini for bikini <-> explicit), so it is offered exactly when that outfit is open.
+ */
+export async function buildTransitions(avatar: AvatarDef, viewer: Viewer): Promise<AvatarBundle["transitions"]> {
+  const out: AvatarBundle["transitions"] = {};
+  for (const k of ["jeans", "bikini"] as const) {
+    const v = avatar.variants[k];
+    if (!v.transitions || !variantGate(avatar.id, v, viewer).ok) continue;
+    const ref = async (file: string) => ({ key: `${v.bucket}:${objectKey(v, file)}`, url: await fileUrl(v, file) });
+    const set: TransitionSet = {
+      version: v.transitions.version,
+      up: await Promise.all(v.transitions.up.map(ref)),
+      down: await Promise.all(v.transitions.down.map(ref)),
+    };
+    out[k] = set;
+  }
+  return out;
+}
+
+/** One request for the whole avatar page: every outfit the viewer may open (or why not) plus the transitions. */
+export async function buildBundle(avatar: AvatarDef, viewer: Viewer): Promise<AvatarBundle> {
+  const variants = {} as AvatarBundle["variants"];
+  for (const k of ["jeans", "bikini", "explicit"] as VariantKey[]) {
+    const r = await buildPlayerManifest(avatar, k, viewer);
+    variants[k] = "gate" in r ? { status: "gated", gate: r.gate.reason } : { status: "open", manifest: r.manifest };
+  }
+  return { avatarId: avatar.id, name: avatar.name, variants, explicitBlur: avatar.variants.explicit.blur ?? 0.03, transitions: await buildTransitions(avatar, viewer) };
 }

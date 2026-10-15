@@ -57,3 +57,30 @@ Credentials for `scripts/bucket.mjs` are created per task and revoked afterwards
 
 ## Regenerating the manifest
 `python3 scripts/gen-avatar-manifest.py` (touch areas are percentages of the 480x720 frame; the subject's right is on the screen's left).
+
+## Outfit transitions
+
+Switching outfit plays short clips between the two pictures: jeans → bikini plays `01`, `02`; bikini → explicit plays `03`, `04`
+(for the south Indian avatar: `01-saree-off-top`, `02-saree-off-bottom`, `03-bra-off`, `04-panties-off`). Going back plays the
+**reversed** clips (`back-02…`, `back-01…`; `back-04…`, `back-03…`), made with `ffmpeg -vf reverse` until real ones are generated.
+
+- A pair belongs to its **lower** outfit and lives in `<set>/transitions/` of that outfit's bucket: jeans ↔ bikini in the jeans set
+  (public), bikini ↔ explicit in the bikini set (private, signed links). Whoever may open that outfit may play the pair.
+- `scripts/transitions.json` lists each set's `up` / `down` files; `scripts/gen-avatar-manifest.py` puts them in the manifest
+  (bump `TRANSITION_VERSION` after replacing clips so browsers drop their cached copies).
+- To replace the reversed clips with real ones, upload them with the same names (`back-02-…`, …) and re-run the manifest generator.
+- While the explicit outfit is blurred for the viewer, the bikini ↔ explicit clips gradually blur (or un-blur) to the teaser's level.
+  That level is measured per outfit by `scripts/measure-blur.py` → `scripts/blur-levels.json` → the explicit variant's `blur`.
+- The avatar page downloads everything the viewer may see up front (`/api/avatars/<id>` returns all outfits + transitions in one
+  request), so switching never shows a loading state. The home page does the same for the transition clips in the background
+  (`/api/transitions`).
+
+## Admin (`/admin`)
+
+Only emails listed in `ALLOWED_ADMIN_EMAILS` (comma separated, set in Vercel) can open it; everyone else gets the normal "not found".
+Admins can grant or remove the paid access levels (More tap locations, Explicit avatar, Bundle) per user and avatar, and give access to
+an email address that has not signed up yet (saved, and the person is invited with Clerk; it applies at their first sign-in).
+Access given here is stored with `source = 'admin'`, shown separately from paid access, and only admins can remove it.
+Every change is written to `admin_audit`. Tables: `entitlements.source/granted_by/note`, `pending_grants`, `grant_checks`, `admin_audit`
+(see `db/schema.sql`; production was migrated with the same statements).
+Local development without Clerk: `ALLOWED_ADMIN_EMAILS=alice@dev.local`, sign in with `/api/dev/login?u=alice`.

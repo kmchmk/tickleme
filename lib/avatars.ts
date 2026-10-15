@@ -22,14 +22,14 @@ export interface AvatarSummary {
   id: string;
   name: string;
   pricing: AvatarDef["pricing"];
-  variants: Record<VariantKey, { label?: string; poster: string; aspectRatio: number; access: VariantAccess; total: number; free: number }>;
+  variants: Record<VariantKey, { label?: string; blur?: number; poster: string; aspectRatio: number; access: VariantAccess; total: number; free: number }>;
 }
 
 export function summarize(a: AvatarDef): AvatarSummary {
   const variants = Object.fromEntries(
     (Object.keys(a.variants) as VariantKey[]).map((k) => {
       const v = a.variants[k];
-      return [k, { label: v.label, poster: posterUrl(v), aspectRatio: v.aspectRatio, access: v.access, total: v.actions.length, free: v.actions.filter((x) => x.tier === "free").length }];
+      return [k, { label: v.label, blur: v.blur, poster: posterUrl(v), aspectRatio: v.aspectRatio, access: v.access, total: v.actions.length, free: v.actions.filter((x) => x.tier === "free").length }];
     }),
   ) as AvatarSummary["variants"];
   return { id: a.id, name: a.name, pricing: a.pricing, variants };

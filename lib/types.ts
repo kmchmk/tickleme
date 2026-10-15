@@ -32,6 +32,8 @@ export interface ActionDef {
 }
 
 export interface VariantDef {
+  /** Explicit outfit only: how blurred its public teaser is, as a fraction of the picture width (see scripts/measure-blur.py). */
+  blur?: number;
   /** Outfit name shown on the chip/tab when it isn't the default (Jeans / Bikini / Explicit). */
   label?: string;
   /** Folder under avatars/ in the bucket, e.g. "woman-in-jeans". */
@@ -48,6 +50,9 @@ export interface VariantDef {
   /** Bump after replacing clips so browsers drop their IndexedDB copies. */
   version: number;
   actions: ActionDef[];
+  /** Clips played when moving to the next outfit up (`up`) or back down to this one (`down`), in order.
+   *  They belong to this (the lower) outfit: anyone who may open it may play them. Files live in <set>/transitions/. */
+  transitions?: { version: number; up: string[]; down: string[] };
 }
 
 export interface AvatarDef {
@@ -90,4 +95,31 @@ export interface Viewer {
   ageConfirmed: boolean;
   /** Purchased products as "<product>:<avatarId>". */
   owned: string[];
+}
+
+/* ---------- outfit transitions + the one-request bundle ---------- */
+
+export interface ClipRef {
+  /** Stable cache key (the URL may be signed and short-lived). */
+  key: string;
+  url: string;
+}
+
+/** Transition clips between an outfit and the next one up; present only when the viewer may play them. */
+export interface TransitionSet {
+  version: number;
+  up: ClipRef[];
+  down: ClipRef[];
+}
+
+export type VariantBundle = { status: "open"; manifest: PlayerManifest } | { status: "gated"; gate: "signin" | "age" | "purchase" };
+
+/** Everything one avatar page needs, for every outfit this viewer may see, so switching never waits. */
+export interface AvatarBundle {
+  avatarId: string;
+  name: string;
+  variants: Record<VariantKey, VariantBundle>;
+  /** Blur of the explicit outfit's teaser (fraction of width), so transitions into it can match it. */
+  explicitBlur: number;
+  transitions: Partial<Record<"jeans" | "bikini", TransitionSet>>;
 }

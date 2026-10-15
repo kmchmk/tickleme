@@ -34,9 +34,14 @@ def zone_data(set_):
         raise SystemExit(f"no computed zones for {set_}: run scripts/gen-zones.py build first")
     return json.load(open(path))
 
+TRANSITIONS = json.load(open("scripts/transitions.json"))   # {set: {up: [...], down: [...]}} (files in <set>/transitions/)
+TRANSITION_VERSION = 1   # bump after replacing transition clips
+BLUR = json.load(open("scripts/blur-levels.json"))   # explicit teaser blur per set (scripts/measure-blur.py)
+
 def variant(set_, bucket, access, idle, poster, version, tier_of):
     zones = zone_data(set_)
-    return {
+    t = TRANSITIONS.get(set_)
+    return {**({"transitions": {"version": TRANSITION_VERSION, **t}} if t else {}),
         "set": set_, "bucket": bucket, "access": access, "idle": idle, "poster": poster,
         "aspectRatio": round(480 / 720, 4), "version": version,
         "actions": [
@@ -61,7 +66,7 @@ def make(id_, name, jeans, bikini, nude, labels=None, idles=("jeans", "bikini", 
         "variants": {
             "jeans": v("jeans", jeans, "public", "guest", "poster.jpg", lambda n: "taps" if n in LOCKED else "free"),
             "bikini": v("bikini", bikini, "private", "member", "poster.jpg", lambda n: "taps" if n in LOCKED else "free"),
-            "explicit": v("nude", nude, "private", "paid", "web/poster.png", lambda n: "explicit"),
+            "explicit": {**v("nude", nude, "private", "paid", "web/poster.png", lambda n: "explicit"), "blur": BLUR[nude[0]]},
         },
     }
 

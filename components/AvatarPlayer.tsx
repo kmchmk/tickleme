@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { getClip } from "@/lib/videoCache";
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from "react";
 import type { PlayerAction, PlayerManifest, Region } from "@/lib/types";
 
 type Ripple = { id: number; x: number; y: number; label?: string };
@@ -71,25 +70,30 @@ const prepVideo = (el: HTMLVideoElement | null) => {
   el.setAttribute("webkit-playsinline", "");
 };
 
-export default function AvatarPlayer({
-  manifest,
-  showHints = false,
-  debug = false,
-  onReady,
-  onLockedTap,
-}: {
+export interface PlayerHandle {
+  /** Paint whatever is showing right now (idle or a playing clip) onto a canvas. */
+  drawFrameTo: (canvas: HTMLCanvasElement) => void;
+  /** Start the idle loop from its first frame (used when the player was mounted on hold, under a transition). */
+  start: () => void;
+}
+
+/**
+ * All clips arrive already downloaded (`urls`: stable key -> blob URL), so nothing here ever waits on the network.
+ * With `hold` the idle loop stays on its first frame until `start()`, so a transition can end exactly on it.
+ */
+const AvatarPlayer = forwardRef<PlayerHandle, {
   manifest: PlayerManifest;
+  urls: Record<string, string>;
+  hold?: boolean;
   showHints?: boolean;
   debug?: boolean;
+  /** The idle video has its first frame ready. */
   onReady?: () => void;
   /** Called when a locked tap location is tapped (no clip exists for it). */
   onLockedTap?: (action: PlayerAction) => void;
-}) {
+}>(function AvatarPlayer({ manifest, urls, hold = false, showHints = false, debug = false, onReady, onLockedTap }, handle) {
   // Only unlocked actions have a clip; locked ones are just a lock on the picture.
   const playable = manifest.actions.filter((a) => a.url);
-  const [urls, setUrls] = useState<Record<string, string> | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const idleRef = useRef<HTMLVideoElement>(null);
@@ -101,38 +105,26 @@ export default function AvatarPlayer({
   const primed = useRef(false);
   const rippleId = useRef(0);
 
+  useImperativeHandle(handle, () => ({
+    drawFrameTo(canvas) {
+      const v = active.current ?? idleRef.current;
+      if (!v || !v.videoWidth) return;
+      canvas.width = v.videoWidth;
+      canvas.height = v.videoHeight;
+      canvas.getContext("2d")?.drawImage(v, 0, 0, canvas.width, canvas.height);
+    },
+    start() {
+      const idle = idleRef.current;
+      if (!idle) return;
+      idle.currentTime = 0;
+      void idle.play().catch(() => {});
+    },
+  }));
+
   const note = useCallback(
     (msg: string) => debug && setLog((l) => [...l.slice(-5), msg]),
     [debug],
   );
-
-  // Load all clips up front (IndexedDB cache first, then network).
-  useEffect(() => {
-    let cancelled = false;
-    const created: string[] = [];
-    const files = [{ key: manifest.idle.key, url: manifest.idle.url }, ...playable.map((a) => ({ key: a.key, url: a.url! }))];
-    let done = 0;
-    setProgress(0);
-    Promise.all(
-      files.map(async (f) => {
-        const u = URL.createObjectURL(await getClip(f.key, f.url, manifest.version));
-        created.push(u);
-        if (!cancelled) setProgress(++done / files.length);
-        return [f.key, u] as const;
-      }),
-    )
-      .then((entries) => !cancelled && setUrls(Object.fromEntries(entries)))
-      .catch((e) => !cancelled && setError(String(e.message ?? e)));
-    return () => {
-      cancelled = true;
-      created.forEach(URL.revokeObjectURL);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manifest]);
-
-  useEffect(() => {
-    if (urls) onReady?.();
-  }, [urls, onReady]);
 
   // Mobile browsers ignore preload; on the first tap, decode every clip's first
   // frame (play+pause inside the user gesture) so later swaps are instant.
@@ -240,8 +232,7 @@ export default function AvatarPlayer({
 
   return (
     <div className="player">
-      {urls &&
-        playable.map((a) => (
+      {playable.map((a) => (
           <video
             key={a.id}
             ref={(el) => {
@@ -256,7 +247,7 @@ export default function AvatarPlayer({
             style={{ zIndex: 1 }}
           />
         ))}
-      {urls && (
+      {
         <video
           ref={(el) => {
             idleRef.current = el;
@@ -265,39 +256,18 @@ export default function AvatarPlayer({
           src={urls[manifest.idle.key]}
           muted
           loop
-          autoPlay
+          autoPlay={!hold}
           playsInline
           preload="auto"
           className="player-video"
           style={{ zIndex: 2 }}
+          onLoadedData={() => onReady?.()}
         />
-      )}
+      }
 
-      {urls && <canvas ref={snapRef} className="player-snap" aria-hidden />}
+      <canvas ref={snapRef} className="player-snap" aria-hidden />
 
-      {!urls && (
-        <div className="player-loading" role="status" aria-live="polite">
-          {error ? (
-            <p>Couldn&apos;t load {manifest.name}. Check your connection and try again.</p>
-          ) : (
-            <>
-              <svg viewBox="0 0 36 36" className="progress-ring" aria-hidden>
-                <circle cx="18" cy="18" r="15.5" className="progress-track" />
-                <circle
-                  cx="18"
-                  cy="18"
-                  r="15.5"
-                  className="progress-value"
-                  strokeDasharray={`${progress * 97.4} 97.4`}
-                />
-              </svg>
-              <span>Waking up {manifest.name}… {Math.round(progress * 100)}%</span>
-            </>
-          )}
-        </div>
-      )}
-
-      {urls && (
+      {(
         <svg
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
@@ -319,7 +289,7 @@ export default function AvatarPlayer({
       )}
 
       {/* Padlocks only show while "Show touch spots" is on; before that a locked spot looks like any other. */}
-      {urls && showHints && (
+      {showHints && (
         <div className="hint-dots" aria-hidden>
           {manifest.actions
             .filter((a) => a.locked)
@@ -348,4 +318,6 @@ export default function AvatarPlayer({
       {debug && <pre className="player-debug">{log.join("\n") || "tap a region…"}</pre>}
     </div>
   );
-}
+});
+
+export default AvatarPlayer;

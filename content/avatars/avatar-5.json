@@ -9,6 +9,17 @@
   "variants": {
     "jeans": {
       "label": "Saree",
+      "transitions": {
+        "version": 1,
+        "up": [
+          "transitions/01-saree-off-top.mp4",
+          "transitions/02-saree-off-bottom.mp4"
+        ],
+        "down": [
+          "transitions/back-02-saree-off-bottom.mp4",
+          "transitions/back-01-saree-off-top.mp4"
+        ]
+      },
       "set": "south-indian-woman-in-saree",
       "bucket": "public",
       "access": "guest",
@@ -1499,6 +1510,17 @@
     },
     "bikini": {
       "label": "Underwear",
+      "transitions": {
+        "version": 1,
+        "up": [
+          "transitions/03-bra-off.mp4",
+          "transitions/04-panties-off.mp4"
+        ],
+        "down": [
+          "transitions/back-04-panties-off.mp4",
+          "transitions/back-03-bra-off.mp4"
+        ]
+      },
       "set": "south-indian-woman-in-underwear",
       "bucket": "private",
       "access": "member",
@@ -3669,7 +3691,8 @@
           "outline": "M40.95,46.53H59.70M40.95,53.47H59.70M40.95,46.53V53.47M59.70,46.53V53.47",
           "tier": "explicit"
         }
-      ]
+      ],
+      "blur": 0.0292
     }
   }
 }

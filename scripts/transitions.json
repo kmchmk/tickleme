@@ -1,0 +1,102 @@
+{
+ "woman-in-jeans": {
+  "up": [
+   "transitions/01-jeans-off-top.mp4",
+   "transitions/02-jeans-off-bottom.mp4"
+  ],
+  "down": [
+   "transitions/back-02-jeans-off-bottom.mp4",
+   "transitions/back-01-jeans-off-top.mp4"
+  ]
+ },
+ "woman-in-bikini": {
+  "up": [
+   "transitions/03-bikini-off-top.mp4",
+   "transitions/04-bikini-off-bottom.mp4"
+  ],
+  "down": [
+   "transitions/back-04-bikini-off-bottom.mp4",
+   "transitions/back-03-bikini-off-top.mp4"
+  ]
+ },
+ "white-woman-in-jeans": {
+  "up": [
+   "transitions/01-jeans-off-top.mp4",
+   "transitions/02-jeans-off-bottom.mp4"
+  ],
+  "down": [
+   "transitions/back-02-jeans-off-bottom.mp4",
+   "transitions/back-01-jeans-off-top.mp4"
+  ]
+ },
+ "white-woman-in-bikini": {
+  "up": [
+   "transitions/03-bikini-off-top.mp4",
+   "transitions/04-bikini-off-bottom.mp4"
+  ],
+  "down": [
+   "transitions/back-04-bikini-off-bottom.mp4",
+   "transitions/back-03-bikini-off-top.mp4"
+  ]
+ },
+ "black-woman-in-jeans": {
+  "up": [
+   "transitions/01-jeans-off-top.mp4",
+   "transitions/02-jeans-off-bottom.mp4"
+  ],
+  "down": [
+   "transitions/back-02-jeans-off-bottom.mp4",
+   "transitions/back-01-jeans-off-top.mp4"
+  ]
+ },
+ "black-woman-in-bikini": {
+  "up": [
+   "transitions/03-bikini-off-top.mp4",
+   "transitions/04-bikini-off-bottom.mp4"
+  ],
+  "down": [
+   "transitions/back-04-bikini-off-bottom.mp4",
+   "transitions/back-03-bikini-off-top.mp4"
+  ]
+ },
+ "asian-woman-in-jeans": {
+  "up": [
+   "transitions/01-jeans-off-top.mp4",
+   "transitions/02-jeans-off-bottom.mp4"
+  ],
+  "down": [
+   "transitions/back-02-jeans-off-bottom.mp4",
+   "transitions/back-01-jeans-off-top.mp4"
+  ]
+ },
+ "asian-woman-in-bikini": {
+  "up": [
+   "transitions/03-bikini-off-top.mp4",
+   "transitions/04-bikini-off-bottom.mp4"
+  ],
+  "down": [
+   "transitions/back-04-bikini-off-bottom.mp4",
+   "transitions/back-03-bikini-off-top.mp4"
+  ]
+ },
+ "south-indian-woman-in-saree": {
+  "up": [
+   "transitions/01-saree-off-top.mp4",
+   "transitions/02-saree-off-bottom.mp4"
+  ],
+  "down": [
+   "transitions/back-02-saree-off-bottom.mp4",
+   "transitions/back-01-saree-off-top.mp4"
+  ]
+ },
+ "south-indian-woman-in-underwear": {
+  "up": [
+   "transitions/03-bra-off.mp4",
+   "transitions/04-panties-off.mp4"
+  ],
+  "down": [
+   "transitions/back-04-panties-off.mp4",
+   "transitions/back-03-bra-off.mp4"
+  ]
+ }
+}

@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import AvatarPlayer from "@/components/AvatarPlayer";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
+import AvatarPlayer, { type PlayerHandle } from "@/components/AvatarPlayer";
+import TransitionLayer, { type LayerHandle } from "@/components/TransitionLayer";
+import { usePreload } from "@/components/usePreload";
 import type { AvatarSummary } from "@/lib/avatars";
-import type { PlayerManifest, VariantKey } from "@/lib/types";
+import { planTransition } from "@/lib/transition-plan";
+import type { AvatarBundle, VariantKey } from "@/lib/types";
 import { AccountArea } from "./AuthControls";
 import { AgeModal, PaywallModal, SignInModal } from "./modals";
 import { useViewer } from "./viewer";
@@ -19,55 +23,59 @@ const SUB: Record<VariantKey, (a: AvatarSummary) => string> = {
   bikini: () => "Free · members 18+",
   explicit: (a) => `18+ · ${priceLabel(a.pricing.explicit)} USDC`,
 };
+const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-type Load =
-  | { status: "loading" }
-  | { status: "ready"; manifest: PlayerManifest }
-  | { status: "gated"; reason: "signin" | "age" | "purchase" }
-  | { status: "error" };
+// "gate" = the user tapped the padlock of an outfit they can't open yet (sign in / confirm age / unlock).
+type Modal = null | { type: "paywall"; need: "taps" | "explicit" } | { type: "gate" };
 
-// "gate" = the user asked to continue past the gate (Unlock button); "closed" = they dismissed an auto-opened gate dialog.
-type Modal = null | { type: "paywall"; need: "taps" | "explicit" } | { type: "gate" } | { type: "closed" };
-
-/** Full-screen play view: blurred ambient backdrop, top bar, outfit switcher and the avatar fitted to any screen. */
+/**
+ * Full-screen play view. Everything the viewer may see (every outfit and every transition clip) is downloaded up
+ * front, so switching outfit never waits: the transition clips play, and the new outfit is already there.
+ */
 export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar: AvatarSummary; initialVariant: VariantKey; debug: boolean }) {
   const { viewer, refresh } = useViewer();
-  const [variant, setVariant] = useState<VariantKey>(initialVariant);
-  const [load, setLoad] = useState<Load>({ status: "loading" });
+  const [bundle, setBundle] = useState<AvatarBundle | null>(null);
+  const [bundleFailed, setBundleFailed] = useState(false);
+  const { urls, progress, failed, retry } = usePreload(bundle);
+
+  const [variant, setVariant] = useState<VariantKey>(initialVariant); // the selected tab
+  const [shown, setShown] = useState<VariantKey>(initialVariant); // what is on stage (under any transition)
+  const [settled, setSettled] = useState<VariantKey>(initialVariant); // what the backdrop shows; changes when a transition ends
+  const [busy, setBusy] = useState(false); // a transition is playing
+  const [hold, setHold] = useState(false);
   const [modal, setModal] = useState<Modal>(null);
   const [hints, setHints] = useState(false);
-  const [ready, setReady] = useState(false);
   const [firstVisit, setFirstVisit] = useState(false);
 
-  // Reload the manifest whenever the variant or what the viewer owns/can do changes.
+  const layer = useRef<LayerHandle>(null);
+  const player = useRef<PlayerHandle>(null);
+  const frame = useRef<HTMLDivElement>(null);
+  const readyResolver = useRef<(() => void) | null>(null);
+
+  // (Re)load the bundle whenever who is looking changes (sign-in, age confirmed, purchase, admin grant).
   const viewerKey = useMemo(() => (viewer ? JSON.stringify(viewer) : ""), [viewer]);
   useEffect(() => {
-    if (!viewer) return; // wait for the first /api/me answer
+    if (!viewer) return;
     let cancelled = false;
-    setLoad({ status: "loading" });
-    setReady(false);
-    // Keep an "Unlock" click alive across the reload, so sign-in -> age -> payment continue on their own.
-    setModal((m) => (m?.type === "gate" || m?.type === "paywall" ? m : null));
-    fetch(`/api/avatars/${avatar.id}/${variant}`, { cache: "no-store" })
+    setBundleFailed(false);
+    fetch(`/api/avatars/${avatar.id}`, { cache: "no-store" })
       .then(async (res) => {
         if (cancelled) return;
-        if (res.ok) {
-          setModal((m) => (m?.type === "gate" ? null : m));
-          return setLoad({ status: "ready", manifest: (await res.json()) as PlayerManifest });
-        }
-        if (res.status === 401 || res.status === 403) {
-          const { gate } = (await res.json()) as { gate: "signin" | "age" | "purchase" };
-          return setLoad({ status: "gated", reason: gate });
-        }
-        setLoad({ status: "error" });
+        if (!res.ok) return setBundleFailed(true);
+        setBundle((await res.json()) as AvatarBundle);
       })
-      .catch(() => !cancelled && setLoad({ status: "error" }));
+      .catch(() => !cancelled && setBundleFailed(true));
     return () => {
       cancelled = true;
     };
     // viewerKey stands in for `viewer`
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [avatar.id, variant, viewerKey]);
+  }, [avatar.id, viewerKey]);
+
+  // The pictures of every outfit, so a cross-fade onto one never waits.
+  useEffect(() => {
+    for (const k of ORDER) new Image().src = avatar.variants[k].poster;
+  }, [avatar]);
 
   useEffect(() => {
     try {
@@ -75,38 +83,71 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
     } catch {}
   }, []);
 
-  const onReady = useCallback(() => setReady(true), []);
+  const entry = bundle?.variants[shown];
+  const manifest = entry?.status === "open" ? entry.manifest : null;
+  const gate = entry?.status === "gated" ? entry.gate : null;
+  const explicitBlurred = bundle?.variants.explicit.status === "gated";
+  const loaded = !!bundle && !!urls;
 
-  // First visit: flash the touch spots briefly once the avatar is ready.
+  // First visit: flash the touch spots briefly once the avatar is on screen.
   useEffect(() => {
-    if (!ready || !firstVisit) return;
+    if (!loaded || !manifest || !firstVisit) return;
     setHints(true);
     const t = setTimeout(() => setHints(false), 2600);
     try {
       localStorage.setItem(HINTS_SEEN_KEY, "1");
     } catch {}
     return () => clearTimeout(t);
-  }, [ready, firstVisit]);
+  }, [loaded, !!manifest, firstVisit]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const pick = (v: VariantKey) => {
-    setVariant(v);
+  // A gate dialog closes by itself once the outfit opens (signed in -> age -> payment continue on their own).
+  useEffect(() => {
+    if (modal?.type === "gate" && loaded && !gate) setModal(null);
+  }, [modal, loaded, gate]);
+
+  const pick = async (k: VariantKey) => {
+    if (busy || k === variant) return;
     const url = new URL(window.location.href);
-    url.searchParams.set("v", v);
+    url.searchParams.set("v", k);
     window.history.replaceState(null, "", url);
+    setVariant(k);
+    if (!bundle || !urls || !layer.current) {
+      setShown(k);
+      setSettled(k);
+      return;
+    }
+    setBusy(true);
+    setHints(false);
+    const plan = planTransition(shown, k, bundle.transitions, !!explicitBlurred);
+    const steps = plan.steps.flatMap((s) => (urls[s.clip.key] ? [{ ...s, src: urls[s.clip.key] }] : []));
+    const targetOpen = bundle.variants[k].status === "open";
+    const p = player.current;
+    // 1. cover the stage with the frame that is showing now, 2. put the new outfit on stage underneath,
+    // 3. play the clips, 4. once the new idle is ready, fade the layer away onto it.
+    await layer.current.begin({ steps, draw: p ? (c) => p.drawFrameTo(c) : undefined, blurPx: bundle.explicitBlur * (frame.current?.clientWidth ?? 400) });
+    const ready = targetOpen ? new Promise<void>((r) => (readyResolver.current = r)) : Promise.resolve();
+    flushSync(() => {
+      setShown(k);
+      setHold(true);
+    });
+    await layer.current.run();
+    await Promise.race([ready, wait(4000)]);
+    player.current?.start();
+    await layer.current.release();
+    setSettled(k);
+    setHold(false);
+    setBusy(false);
   };
 
-  const poster = avatar.variants[variant].poster;
-  const manifest = load.status === "ready" ? load.manifest : null;
-  const gate = load.status === "gated" ? load.reason : null;
+  const poster = avatar.variants[shown].poster;
+  const backdrop = avatar.variants[settled].poster;
   const lockedCount = manifest ? manifest.actions.filter((a) => a.locked).length : 0;
-  const mention = variant === "explicit" ? "The explicit version" : `The ${labelOf(avatar, variant).toLowerCase()} version`;
-  const autoOpen = variant !== "explicit";
-  const showGate = autoOpen ? modal?.type !== "closed" && modal?.type !== "paywall" : modal?.type === "gate";
-  const dismissGate = () => setModal(autoOpen ? { type: "closed" } : null);
+  const mention = shown === "explicit" ? "The explicit version" : `The ${labelOf(avatar, shown).toLowerCase()} version`;
+  const closeGate = () => setModal(null);
 
   return (
-    <main className="screen" style={{ "--ar": avatar.variants[variant].aspectRatio } as React.CSSProperties}>
-      <div className="screen-backdrop" style={{ backgroundImage: `url(${poster})` }} aria-hidden />
+    <main className="screen" style={{ "--ar": avatar.variants[shown].aspectRatio } as React.CSSProperties}>
+      <div className="screen-backdrop" style={{ backgroundImage: `url(${backdrop})` }} aria-hidden />
 
       <header className="screen-bar">
         <Link href="/" className="icon-btn" aria-label="Back to all avatars">
@@ -122,7 +163,7 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
 
       <div className="tabs" role="tablist" aria-label="Outfit">
         {ORDER.map((k) => (
-          <button key={k} type="button" role="tab" aria-selected={variant === k} className={`tab ${variant === k ? "tab--on" : ""}`} onClick={() => pick(k)}>
+          <button key={k} type="button" role="tab" aria-selected={variant === k} disabled={busy} className={`tab ${variant === k ? "tab--on" : ""}`} onClick={() => void pick(k)}>
             <span>{labelOf(avatar, k)}</span>
             <small>{SUB[k](avatar)}</small>
           </button>
@@ -130,38 +171,56 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
       </div>
 
       <div className="stage">
-        <div className="frame" style={{ backgroundImage: `url(${poster})` }}>
-          {manifest && (
+        <div ref={frame} className={`frame ${gate ? "frame--locked" : ""}`} style={{ backgroundImage: `url(${poster})` }}>
+          {loaded && manifest && (
             <AvatarPlayer
-              key={`${manifest.variant}:${manifest.actions.filter((a) => a.locked).length}`}
+              key={`${shown}:${manifest.version}:${lockedCount}`}
+              ref={player}
               manifest={manifest}
+              urls={urls}
+              hold={hold}
               showHints={hints}
               debug={debug}
-              onReady={onReady}
+              onReady={() => readyResolver.current?.()}
               onLockedTap={() => setModal({ type: "paywall", need: "taps" })}
             />
           )}
-          {(load.status === "loading" || !viewer) && (
-            <div className="player-loading" role="status">
-              <span className="spinner" />
+          {loaded && gate && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={poster} className="frame-poster" src={poster} alt="" />
+          )}
+          <TransitionLayer ref={layer} />
+
+          {loaded && gate && !busy && (
+            <button
+              type="button"
+              className="gate-lock"
+              aria-label={gate === "signin" ? "Locked. Sign in to see this outfit" : gate === "age" ? "Locked. Confirm your age to continue" : "Locked. Unlock this outfit"}
+              onClick={() => setModal({ type: "gate" })}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <rect x="5" y="11" width="14" height="9" rx="2" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+            </button>
+          )}
+
+          {/* Only on first load (and when who is looking changes): never while switching outfits. */}
+          {!loaded && !failed && !bundleFailed && (
+            <div className="player-loading" role="status" aria-live="polite">
+              <svg viewBox="0 0 36 36" className="progress-ring" aria-hidden>
+                <circle cx="18" cy="18" r="15.5" className="progress-track" />
+                <circle cx="18" cy="18" r="15.5" className="progress-value" strokeDasharray={`${progress * 97.4} 97.4`} />
+              </svg>
+              <span>
+                Waking up {avatar.name}… {Math.round(progress * 100)}%
+              </span>
             </div>
           )}
-          {gate && (
-            <div className="teaser">
-              <span className="teaser-badge">{variant === "explicit" ? "Explicit · 18+" : "Members only · 18+"}</span>
-              <p className="teaser-text">
-                {gate === "signin" ? "Sign in to see this outfit" : gate === "age" ? "Confirm your age to continue" : "Unlock the explicit version"}
-              </p>
-              {gate === "purchase" && <p className="teaser-price">{priceLabel(avatar.pricing.explicit)} USDC · or the bundle for {priceLabel(avatar.pricing.bundle)}</p>}
-              <button type="button" className="btn" onClick={() => setModal({ type: "gate" })}>
-                {gate === "signin" ? "Sign in" : gate === "age" ? "Continue" : "Unlock"}
-              </button>
-            </div>
-          )}
-          {load.status === "error" && (
+          {(failed || bundleFailed) && (
             <div className="player-loading">
-              <p>Couldn&apos;t load this right now. Please try again.</p>
-              <button type="button" className="btn" onClick={() => pick(variant)}>
+              <p>Couldn&apos;t load {avatar.name} right now. Check your connection and try again.</p>
+              <button type="button" className="btn" onClick={() => (bundleFailed ? window.location.reload() : retry())}>
                 Retry
               </button>
             </div>
@@ -169,7 +228,7 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
         </div>
       </div>
 
-      <div className={`dock ${ready ? "" : "dock--hidden"}`}>
+      <div className={`dock ${loaded && !busy && !gate ? "" : "dock--hidden"}`}>
         {lockedCount > 0 && (
           <button type="button" className="btn btn--accent" onClick={() => setModal({ type: "paywall", need: "taps" })}>
             Unlock {lockedCount} more spot{lockedCount > 1 ? "s" : ""} · {priceLabel(avatar.pricing.taps)} USDC
@@ -181,13 +240,12 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
         <p className="dock-tip">Tap {avatar.name} anywhere to play</p>
       </div>
 
-      {/* Gate dialogs. The bikini outfit opens its sign-in / age dialog by itself; the explicit outfit first
-          shows the blurred teaser, and its dialogs (sign-in, age, payment) only open when the user clicks Unlock. */}
-      {gate && showGate && (
+      {/* Gate dialogs only open when the padlock is tapped: sign in -> confirm age -> unlock, each continuing on its own. */}
+      {gate && modal?.type === "gate" && (
         <>
-          {gate === "signin" && <SignInModal why={`The ${labelOf(avatar, variant).toLowerCase()} outfit is for signed-in members.`} onClose={dismissGate} />}
-          {gate === "age" && <AgeModal mention={mention} onConfirmed={() => void refresh()} onClose={dismissGate} />}
-          {gate === "purchase" && <PaywallModal avatar={avatar} need="explicit" onClose={dismissGate} onPaid={() => void refresh()} />}
+          {gate === "signin" && <SignInModal why={`The ${labelOf(avatar, shown).toLowerCase()} outfit is for signed-in members.`} onClose={closeGate} />}
+          {gate === "age" && <AgeModal mention={mention} onConfirmed={() => void refresh()} onClose={closeGate} />}
+          {gate === "purchase" && <PaywallModal avatar={avatar} need="explicit" onClose={closeGate} onPaid={() => void refresh()} />}
         </>
       )}
       {modal?.type === "paywall" &&

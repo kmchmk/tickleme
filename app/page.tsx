@@ -1,4 +1,5 @@
 import AvatarCard from "@/components/AvatarCard";
+import { HomeTransitionsProvider } from "@/components/HomeTransitions";
 import { AccountArea } from "@/components/AuthControls";
 import { getAvatars, summarize } from "@/lib/avatars";
 
@@ -15,13 +16,15 @@ export default function Home() {
         <AccountArea />
       </header>
 
-      <ul className="grid">
-        {getAvatars().map((a) => (
-          <li key={a.id}>
-            <AvatarCard avatar={summarize(a)} />
-          </li>
-        ))}
-      </ul>
+      <HomeTransitionsProvider>
+        <ul className="grid">
+          {getAvatars().map((a) => (
+            <li key={a.id}>
+              <AvatarCard avatar={summarize(a)} />
+            </li>
+          ))}
+        </ul>
+      </HomeTransitionsProvider>
 
       <footer className="home-footer">Best on your phone. Some outfits are for adults only (18+).</footer>
     </main>

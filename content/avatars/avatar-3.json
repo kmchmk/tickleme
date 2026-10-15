@@ -8,6 +8,17 @@
   },
   "variants": {
     "jeans": {
+      "transitions": {
+        "version": 1,
+        "up": [
+          "transitions/01-jeans-off-top.mp4",
+          "transitions/02-jeans-off-bottom.mp4"
+        ],
+        "down": [
+          "transitions/back-02-jeans-off-bottom.mp4",
+          "transitions/back-01-jeans-off-top.mp4"
+        ]
+      },
       "set": "black-woman-in-jeans",
       "bucket": "public",
       "access": "guest",
@@ -1350,6 +1361,17 @@
       ]
     },
     "bikini": {
+      "transitions": {
+        "version": 1,
+        "up": [
+          "transitions/03-bikini-off-top.mp4",
+          "transitions/04-bikini-off-bottom.mp4"
+        ],
+        "down": [
+          "transitions/back-04-bikini-off-bottom.mp4",
+          "transitions/back-03-bikini-off-top.mp4"
+        ]
+      },
       "set": "black-woman-in-bikini",
       "bucket": "private",
       "access": "member",
@@ -4122,7 +4144,8 @@
           "outline": "M41.11,45.14H59.86M41.11,52.78H59.86M41.11,45.14V52.78M59.86,45.14V52.78",
           "tier": "explicit"
         }
-      ]
+      ],
+      "blur": 0.0333
     }
   }
 }
