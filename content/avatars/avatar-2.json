@@ -1139,7 +1139,7 @@
       "idle": "idle-bikini.mp4",
       "poster": "poster.jpg",
       "aspectRatio": 0.6667,
-      "version": 4,
+      "version": 5,
       "actions": [
         {
           "id": "01-forehead",
@@ -2250,7 +2250,7 @@
       "idle": "idle-nude.mp4",
       "poster": "web/poster.png",
       "aspectRatio": 0.6667,
-      "version": 4,
+      "version": 5,
       "actions": [
         {
           "id": "01-forehead",

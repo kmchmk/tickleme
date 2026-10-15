@@ -62,9 +62,9 @@ def make(id_, name, jeans, bikini, nude):
     }
 
 AVATARS = [
-    make("avatar-1", "Avatar 1", ("woman-in-jeans", 8), ("woman-in-bikini", 9), ("woman-in-nude", 4)),
-    make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 6), ("white-woman-in-bikini", 4), ("white-woman-in-nude", 4)),
-    make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 5), ("black-woman-in-bikini", 4), ("black-woman-in-nude", 4)),
+    make("avatar-1", "Avatar 1", ("woman-in-jeans", 8), ("woman-in-bikini", 10), ("woman-in-nude", 5)),
+    make("avatar-2", "Avatar 2", ("white-woman-in-jeans", 6), ("white-woman-in-bikini", 5), ("white-woman-in-nude", 5)),
+    make("avatar-3", "Avatar 3", ("black-woman-in-jeans", 5), ("black-woman-in-bikini", 5), ("black-woman-in-nude", 5)),
     make("avatar-4", "Avatar 4", ("asian-woman-in-jeans", 2), ("asian-woman-in-bikini", 2), ("asian-woman-in-nude", 1)),
 ]
 for avatar in AVATARS:
