@@ -41,7 +41,9 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
   const { viewer, refresh } = useViewer();
   const [bundle, setBundle] = useState<AvatarBundle | null>(null);
   const [bundleFailed, setBundleFailed] = useState(false);
-  const { snapshot, loading, progress, failed, retry } = usePreload(bundle);
+  const [attempt, setAttempt] = useState(0); // "Retry" fetches the bundle again (fresh download links)
+  const { snapshot, loading, progress, failed } = usePreload(bundle);
+  const reload = useCallback(() => setAttempt((a) => a + 1), []);
 
   const [variant, setVariant] = useState<VariantKey>(initialVariant); // the highlighted button
   const [shown, setShown] = useState<VariantKey>(initialVariant); // the outfit on stage at rest
@@ -78,7 +80,7 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
     };
     // viewerKey stands in for `viewer`
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [avatar.id, viewerKey]);
+  }, [avatar.id, viewerKey, attempt]);
 
   // Put the outfit on stage whenever a (new) snapshot is ready: first load, or unlocked/locked in place.
   useEffect(() => {
@@ -272,7 +274,15 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
           {(failed || bundleFailed) && !ready && (
             <div className="player-loading">
               <p>Couldn&apos;t load {avatar.name} right now. Check your connection and try again.</p>
-              <button type="button" className="btn" onClick={() => (bundleFailed ? window.location.reload() : retry())}>
+              <button type="button" className="btn" onClick={reload}>
+                Retry
+              </button>
+            </div>
+          )}
+          {ready && !loading && (failed || bundleFailed) && (
+            <div className="stage-note stage-note--action" role="alert">
+              Couldn&apos;t update.
+              <button type="button" onClick={reload}>
                 Retry
               </button>
             </div>

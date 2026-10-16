@@ -20,6 +20,8 @@ function openDb(): Promise<IDBDatabase> {
     req.onupgradeneeded = () => req.result.createObjectStore(STORE);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
+    req.onblocked = () => reject(new Error("indexedDB blocked"));
+    setTimeout(() => reject(new Error("indexedDB timeout")), 3000); // some private modes never answer
   });
   return dbPromise;
 }
@@ -35,10 +37,19 @@ function tx<T>(mode: IDBTransactionMode, run: (s: IDBObjectStore) => IDBRequest<
   );
 }
 
+/** Fetches a file, retrying network hiccups (common on phones) twice with a short back-off. */
 async function download(url: string): Promise<Blob> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${url}: ${res.status}`);
-  return res.blob();
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) return await res.blob();
+      if (res.status < 500 && res.status !== 429) throw Object.assign(new Error(`${url}: ${res.status}`), { final: true });
+      throw new Error(`${url}: ${res.status}`);
+    } catch (e) {
+      if ((e as { final?: boolean }).final || attempt >= 2) throw e;
+      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+    }
+  }
 }
 
 export async function getClip(key: string, url: string, version: number): Promise<Blob> {

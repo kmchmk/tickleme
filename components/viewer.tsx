@@ -49,6 +49,19 @@ export function ViewerProvider({ children }: { children: React.ReactNode }) {
     void refresh();
   }, [refresh]);
 
+  // Coming back to the tab (e.g. from a wallet app after paying with the dialog closed) re-checks, at most every 30 s:
+  // the server settles late payments on this call, so the unlock shows up without a reload.
+  const last = useRef(Date.now());
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || Date.now() - last.current < 30_000) return;
+      last.current = Date.now();
+      void refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [refresh]);
+
   const value = useMemo(() => ({ viewer, features, refresh }), [viewer, features, refresh]);
   return (
     <Ctx.Provider value={value}>

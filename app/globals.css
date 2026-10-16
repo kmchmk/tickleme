@@ -2585,6 +2585,14 @@ a.card:active {
 .chip--busy {
   padding-right: 20px;
 }
+/* The spinner takes the padlock's place while busy. */
+.tab--busy .tab-lock,
+.chip--busy .chip-lock {
+  display: none;
+}
+.tab.tab--busy {
+  padding-right: 30px;
+}
 .tab--queued,
 .chip--queued {
   outline: 2px dashed rgba(255, 122, 89, 0.85);
@@ -2595,4 +2603,14 @@ a.card:active {
   .chip--busy::after {
     animation: none;
   }
+}
+
+.stage-note--action button {
+  border: 0;
+  padding: 2px 4px;
+  background: none;
+  color: var(--accent-2);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
 }
