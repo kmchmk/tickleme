@@ -44,11 +44,12 @@ export interface AdminUser {
   name: string;
   createdAt: number | null;
   lastSignInAt: number | null;
+  imageUrl?: string;
   ageConfirmed: boolean;
   access: { avatarId: string; product: Product; source: "payment" | "admin"; grantedBy?: string; note?: string }[];
 }
 
-async function decorate(base: { id: string; email: string; name: string; createdAt: number | null; lastSignInAt: number | null }[]): Promise<AdminUser[]> {
+async function decorate(base: BaseUser[]): Promise<AdminUser[]> {
   if (!base.length) return [];
   const ids = base.map((u) => u.id);
   const [ents, profs] = await Promise.all([
@@ -64,28 +65,181 @@ async function decorate(base: { id: string; email: string; name: string; created
   }));
 }
 
-/** Users, newest first, optionally filtered by an email / name search. */
-export async function listUsers(q: string, offset: number, limit: number): Promise<{ users: AdminUser[]; total: number }> {
-  if (AUTH_ENABLED) {
-    const { clerkClient } = await import("@clerk/nextjs/server");
-    const client = await clerkClient();
-    const res = await client.users.getUserList({ query: q || undefined, limit, offset, orderBy: "-created_at" });
-    const base = res.data.map((u) => ({
+type BaseUser = { id: string; email: string; name: string; createdAt: number | null; lastSignInAt: number | null; imageUrl?: string };
+
+async function clerkUsers(params: { query?: string; userId?: string[]; limit: number; offset: number }): Promise<{ base: BaseUser[]; total: number }> {
+  const { clerkClient } = await import("@clerk/nextjs/server");
+  const res = await (await clerkClient()).users.getUserList({ ...params, orderBy: "-created_at" });
+  return {
+    total: res.totalCount,
+    base: res.data.map((u) => ({
       id: u.id,
       email: u.emailAddresses.find((e) => e.id === u.primaryEmailAddressId)?.emailAddress ?? u.emailAddresses[0]?.emailAddress ?? "",
       name: [u.firstName, u.lastName].filter(Boolean).join(" "),
       createdAt: u.createdAt ?? null,
       lastSignInAt: u.lastSignInAt ?? null,
-    }));
-    return { users: await decorate(base), total: res.totalCount };
+      imageUrl: u.hasImage ? u.imageUrl : undefined,
+    })),
+  };
+}
+
+const devBase = (id: string): BaseUser => ({ id, email: `${id.replace(/^dev_/, "")}@dev.local`, name: "", createdAt: null, lastSignInAt: null });
+
+export type UserFilter = "all" | "paying" | "granted" | "adult";
+const FILTER_SQL: Record<Exclude<UserFilter, "all">, string> = {
+  paying: "select user_id, max(created_at) at from entitlements where source = 'payment' group by user_id",
+  granted: "select user_id, max(created_at) at from entitlements where source = 'admin' group by user_id",
+  adult: "select user_id, age_confirmed_at at from profiles where age_confirmed_at is not null",
+};
+
+/** Users, newest first, optionally searched (email / name) and filtered (paying, admin-granted, 18+ confirmed). */
+export async function listUsers(q: string, offset: number, limit: number, filter: UserFilter = "all"): Promise<{ users: AdminUser[]; total: number }> {
+  if (filter !== "all") {
+    const rows = await query(`select user_id from (${FILTER_SQL[filter]}) t order by at desc nulls last limit 1000`);
+    let ids = rows.map((r) => String(r.user_id));
+    if (!AUTH_ENABLED) {
+      if (q) ids = ids.filter((id) => id.includes(q.toLowerCase()));
+      return { users: await decorate(ids.slice(offset, offset + limit).map(devBase)), total: ids.length };
+    }
+    if (!ids.length) return { users: [], total: 0 };
+    if (q) {
+      // Search within the filtered set (Clerk caps userId lists at 100 per call, so search first and intersect).
+      const { base } = await clerkUsers({ query: q, limit: 100, offset: 0 });
+      const set = new Set(ids);
+      const hits = base.filter((u) => set.has(u.id));
+      return { users: await decorate(hits.slice(offset, offset + limit)), total: hits.length };
+    }
+    const page = ids.slice(offset, offset + limit);
+    const { base } = page.length ? await clerkUsers({ userId: page, limit, offset: 0 }) : { base: [] };
+    const order = new Map(page.map((id, i) => [id, i]));
+    base.sort((x, y) => (order.get(x.id) ?? 0) - (order.get(y.id) ?? 0));
+    return { users: await decorate(base), total: ids.length };
+  }
+  if (AUTH_ENABLED) {
+    const { base, total } = await clerkUsers({ query: q || undefined, limit, offset });
+    return { users: await decorate(base), total };
   }
   // Development without Clerk: whoever has a profile or an entitlement.
   const rows = await query("select user_id from (select user_id from profiles union select user_id from entitlements) t order by user_id");
   const base = rows
     .map((r) => String(r.user_id))
     .filter((id) => !q || id.includes(q.toLowerCase()))
-    .map((id) => ({ id, email: `${id.replace(/^dev_/, "")}@dev.local`, name: "", createdAt: null, lastSignInAt: null }));
+    .map(devBase);
   return { users: await decorate(base.slice(offset, offset + limit)), total: base.length };
+}
+
+export interface AdminOrder {
+  id: string;
+  userId: string;
+  email?: string;
+  avatarId: string;
+  product: Product;
+  status: "pending" | "paid";
+  amountUsdc: string;
+  manual: boolean;
+  txSignature?: string;
+  createdAt: string;
+  paidAt?: string;
+}
+
+const orderView = (o: Record<string, unknown>): AdminOrder => ({
+  id: String(o.id),
+  userId: String(o.user_id),
+  avatarId: String(o.avatar_id),
+  product: o.product as Product,
+  status: o.status as "pending" | "paid",
+  amountUsdc: (Number(o.amount_micro) / 1e6).toFixed(2),
+  manual: o.manual_micro != null,
+  txSignature: o.tx_signature ? String(o.tx_signature) : undefined,
+  createdAt: new Date(String(o.created_at)).toISOString(),
+  paidAt: o.paid_at ? new Date(String(o.paid_at)).toISOString() : undefined,
+});
+
+/** Emails for a set of user ids (one Clerk call per 100). */
+export async function emailsOf(ids: string[]): Promise<Map<string, string>> {
+  const m = new Map<string, string>();
+  const unique = [...new Set(ids)];
+  if (!AUTH_ENABLED) {
+    for (const id of unique) m.set(id, devBase(id).email);
+    return m;
+  }
+  for (let i = 0; i < unique.length; i += 100) {
+    const { base } = await clerkUsers({ userId: unique.slice(i, i + 100), limit: 100, offset: 0 });
+    for (const u of base) m.set(u.id, u.email);
+  }
+  return m;
+}
+
+/** Recent orders (newest first), optionally only paid or only pending, with the buyer's email. */
+export async function listOrders(status: "all" | "paid" | "pending", offset: number, limit: number): Promise<{ orders: AdminOrder[]; total: number }> {
+  const where = status === "all" ? "" : `where status = '${status}'`;
+  const [rows, count] = await Promise.all([
+    query(`select * from orders ${where} order by coalesce(paid_at, created_at) desc limit $1 offset $2`, [limit, offset]),
+    query(`select count(*)::int n from orders ${where}`),
+  ]);
+  const orders = rows.map(orderView);
+  const emails = await emailsOf(orders.map((o) => o.userId)).catch(() => new Map<string, string>());
+  for (const o of orders) o.email = emails.get(o.userId);
+  return { orders, total: Number(count[0]?.n ?? 0) };
+}
+
+/** One person, everything about them: account, access, orders. */
+export async function userDetail(userId: string): Promise<{ user: AdminUser; orders: AdminOrder[] } | null> {
+  let base: BaseUser | undefined;
+  if (AUTH_ENABLED) base = (await clerkUsers({ userId: [userId], limit: 1, offset: 0 })).base[0];
+  else if (/^dev_/.test(userId)) base = devBase(userId);
+  if (!base) return null;
+  const [[user], rows] = await Promise.all([decorate([base]), query("select * from orders where user_id = $1 order by created_at desc limit 50", [userId])]);
+  return { user, orders: rows.map(orderView) };
+}
+
+export interface AdminStats {
+  users: number | null;
+  adults: number;
+  paying: number;
+  granted: number;
+  revenueUsdc: string;
+  revenue30Usdc: string;
+  sales: number;
+  sales30: number;
+  pending24: number;
+  invites: number;
+}
+
+/** Headline numbers for the overview. Mock (dev) payments are left out of the revenue. */
+export async function stats(): Promise<AdminStats> {
+  const [r] = await query(`select
+      (select count(*) from profiles where age_confirmed_at is not null)::int adults,
+      (select count(distinct user_id) from entitlements where source = 'payment')::int paying,
+      (select count(distinct user_id) from entitlements where source = 'admin')::int granted,
+      (select coalesce(sum(amount_micro), 0) from orders where status = 'paid' and tx_signature not like 'mock-%')::bigint revenue,
+      (select coalesce(sum(amount_micro), 0) from orders where status = 'paid' and tx_signature not like 'mock-%' and paid_at > now() - interval '30 days')::bigint revenue30,
+      (select count(*) from orders where status = 'paid' and tx_signature not like 'mock-%')::int sales,
+      (select count(*) from orders where status = 'paid' and tx_signature not like 'mock-%' and paid_at > now() - interval '30 days')::int sales30,
+      (select count(*) from orders where status = 'pending' and created_at > now() - interval '24 hours')::int pending24,
+      (select count(distinct email) from pending_grants)::int invites`);
+  let users: number | null = null;
+  if (AUTH_ENABLED) {
+    try {
+      const { clerkClient } = await import("@clerk/nextjs/server");
+      users = await (await clerkClient()).users.getCount();
+    } catch {
+      users = null;
+    }
+  } else users = Number((await query("select count(*)::int n from (select user_id from profiles union select user_id from entitlements) t"))[0]?.n ?? 0);
+  const usdc = (v: unknown) => (Number(v) / 1e6).toFixed(2);
+  return {
+    users,
+    adults: Number(r.adults),
+    paying: Number(r.paying),
+    granted: Number(r.granted),
+    revenueUsdc: usdc(r.revenue),
+    revenue30Usdc: usdc(r.revenue30),
+    sales: Number(r.sales),
+    sales30: Number(r.sales30),
+    pending24: Number(r.pending24),
+    invites: Number(r.invites),
+  };
 }
 
 async function findUserByEmail(email: string): Promise<string | null> {
