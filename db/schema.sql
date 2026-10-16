@@ -20,6 +20,9 @@ create table if not exists orders (
   paid_at timestamptz
 );
 create index if not exists orders_user_idx on orders (user_id, created_at desc);
+-- Unique exact amount for transfers without the Solana Pay reference (exchanges); set when the buyer asks for it.
+alter table orders add column if not exists manual_micro bigint;
+create index if not exists orders_manual_idx on orders (manual_micro) where manual_micro is not null;
 
 create table if not exists entitlements (
   user_id text not null,

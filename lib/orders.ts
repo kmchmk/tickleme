@@ -2,7 +2,7 @@ import "server-only";
 import { canBuy, priceMicro } from "./access";
 import { MOCK_PAYMENTS, ORDER_TTL_MINUTES, SOLANA_RECIPIENT, USDC_MINT } from "./config";
 import { query, type Row } from "./db";
-import { findPayment, newReference, paymentUrl } from "./solana";
+import { findPayment, microToDecimal, newReference, paymentUrl, recentIncoming } from "./solana";
 import type { AvatarDef, Product, Viewer } from "./types";
 
 export interface OrderView {
@@ -17,7 +17,10 @@ export interface OrderView {
   reference: string;
   expiresAt: string;
   paymentUrl: string;
+  /** Exact amount for a manual transfer (exchange / wallet without Solana Pay), once the buyer asked for it. */
+  manualAmountUsdc?: string;
   txSignature?: string;
+  createdAt: string;
 }
 
 const label = "Tickle Me";
@@ -36,7 +39,9 @@ function view(o: Row): OrderView {
     reference: String(o.reference),
     expiresAt: new Date(String(o.expires_at)).toISOString(),
     paymentUrl: paymentUrl({ amountMicro: amount, reference: String(o.reference), label, message: `Unlock (${o.product})`, memo: String(o.id) }),
+    manualAmountUsdc: o.manual_micro != null ? microToDecimal(BigInt(String(o.manual_micro))) : undefined,
     txSignature: o.tx_signature ? String(o.tx_signature) : undefined,
+    createdAt: new Date(String(o.created_at)).toISOString(),
   };
 }
 
@@ -73,12 +78,21 @@ export async function fulfill(orderId: string, signature: string, payer: string)
   return Number(rows[0]?.paid ?? 0) > 0;
 }
 
+/** Looks for this order's payment on chain: by its Solana Pay reference, or (manual sends) by its unique exact amount. */
+async function lookForPayment(o: Row) {
+  const byReference = await findPayment(String(o.reference), BigInt(String(o.amount_micro)));
+  if (byReference || o.manual_micro == null) return byReference;
+  const exact = BigInt(String(o.manual_micro));
+  const since = Math.floor(new Date(String(o.created_at)).getTime() / 1000) - 120;
+  return (await recentIncoming(since)).find((p) => p.receivedMicro === exact && p.blockTime >= since) ?? null;
+}
+
 /** Current state of an order; while pending it checks the chain and fulfils on a valid payment. */
 export async function refreshOrder(userId: string, orderId: string): Promise<OrderView | null> {
   const rows = await query("select * from orders where id = $1 and user_id = $2", [orderId, userId]);
   if (!rows[0]) return null;
   if (rows[0].status === "pending") {
-    const found = await findPayment(String(rows[0].reference), BigInt(String(rows[0].amount_micro))).catch((e) => {
+    const found = await lookForPayment(rows[0]).catch((e) => {
       console.error("payment check failed", e);
       return null;
     });
@@ -93,6 +107,31 @@ export async function refreshOrder(userId: string, orderId: string): Promise<Ord
     }
   }
   return view(rows[0]);
+}
+
+/**
+ * Gives the order a unique exact amount (the price plus a few millionths of a USDC) so a plain transfer without the
+ * Solana Pay reference, e.g. a withdrawal from an exchange, can still be matched to it. No other open order of the
+ * last week shares it.
+ */
+export async function enableManualPayment(userId: string, orderId: string): Promise<OrderView | null> {
+  const rows = await query("select * from orders where id = $1 and user_id = $2", [orderId, userId]);
+  const o = rows[0];
+  if (!o) return null;
+  if (o.manual_micro != null || o.status !== "pending") return view(o);
+  const base = BigInt(String(o.amount_micro));
+  for (let i = 0; i < 20; i++) {
+    const candidate = base + BigInt(1 + Math.floor(Math.random() * 9999));
+    const updated = await query(
+      `update orders set manual_micro = $3
+       where id = $1 and user_id = $2 and manual_micro is null
+         and not exists (select 1 from orders where manual_micro = $3 and created_at > now() - interval '7 days')
+       returning *`,
+      [orderId, userId, candidate.toString()],
+    );
+    if (updated[0]) return view(updated[0]);
+  }
+  throw new Error("no unique amount available");
 }
 
 async function refreshOrderRow(userId: string, orderId: string): Promise<OrderView | null> {

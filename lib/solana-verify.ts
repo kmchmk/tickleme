@@ -39,6 +39,22 @@ function receivedBy(balances: TokenBalance[] | null | undefined, e: Expectation)
   return m;
 }
 
+/** How much of the token the recipient gained in this transaction (micro units; 0 if it failed or is missing). */
+export function receivedMicro(tx: ParsedTx | null, recipient: string, mint: string): bigint {
+  if (!tx?.meta || tx.meta.err) return 0n;
+  const e = { recipient, mint } as Expectation;
+  const pre = receivedBy(tx.meta.preTokenBalances, e);
+  let delta = 0n;
+  for (const [idx, amount] of receivedBy(tx.meta.postTokenBalances, e)) delta += amount - (pre.get(idx) ?? 0n);
+  return delta;
+}
+
+/** The fee payer / first signer of a transaction. */
+export function payerOf(tx: ParsedTx): string {
+  const signer = tx.transaction.message.accountKeys.map((k) => (typeof k === "string" ? { pubkey: k, signer: false } : k)).find((k) => k.signer);
+  return signer?.pubkey ?? "unknown";
+}
+
 /**
  * Accepts a transaction only if it succeeded, includes the order's reference key,
  * and increased the recipient's balance of the right token by at least the price.
@@ -50,12 +66,7 @@ export function verifyTransfer(tx: ParsedTx | null, e: Expectation): Verdict {
   const keys = tx.transaction.message.accountKeys;
   if (!keys.some((k) => keyOf(k) === e.reference)) return { ok: false, reason: "reference key missing" };
 
-  const pre = receivedBy(tx.meta.preTokenBalances, e);
-  const post = receivedBy(tx.meta.postTokenBalances, e);
-  let delta = 0n;
-  for (const [idx, amount] of post) delta += amount - (pre.get(idx) ?? 0n);
+  const delta = receivedMicro(tx, e.recipient, e.mint);
   if (delta < e.minMicro) return { ok: false, reason: `received ${delta} < required ${e.minMicro}` };
-
-  const signer = keys.map((k) => (typeof k === "string" ? { pubkey: k, signer: false } : k)).find((k) => k.signer);
-  return { ok: true, payer: signer?.pubkey ?? "unknown", receivedMicro: delta };
+  return { ok: true, payer: payerOf(tx), receivedMicro: delta };
 }

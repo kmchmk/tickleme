@@ -17,7 +17,16 @@ export function Modal({ title, children, onClose }: { title: string; children: R
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div className="modal" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">{title}</h2>
+        <div className="modal-head">
+          <h2 className="modal-title">{title}</h2>
+          {onClose && (
+            <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </button>
+          )}
+        </div>
         {children}
       </div>
     </div>
@@ -81,6 +90,28 @@ interface Order {
   recipient: string;
   paymentUrl: string;
   expiresAt: string;
+  manualAmountUsdc?: string;
+  txSignature?: string;
+}
+
+/** A value with a one-tap copy button (shows "Copied" for a moment). */
+function CopyField({ label, value, display }: { label: string; value: string; display?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    void navigator.clipboard?.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    });
+  };
+  return (
+    <div className="copy-field">
+      <span className="copy-label">{label}</span>
+      <code className="copy-value">{display ?? value}</code>
+      <button type="button" className="btn btn--ghost btn--small" onClick={copy} aria-label={`Copy ${label.toLowerCase()}`}>
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
+  );
 }
 
 const COPY: Record<Product, { title: string; blurb: string }> = {
@@ -107,7 +138,9 @@ export function PaywallModal({
   const [qr, setQr] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualBusy, setManualBusy] = useState(false);
+  const [touch, setTouch] = useState(false);
   const done = useRef(false);
 
   const start = async () => {
@@ -135,11 +168,33 @@ export function PaywallModal({
     }
   }, [order, onPaid]);
 
+  useEffect(() => setTouch(window.matchMedia("(pointer: coarse)").matches), []);
+
+  // Check every few seconds, and right away when the buyer comes back from their wallet app.
   useEffect(() => {
     if (!order || order.status === "paid") return;
-    const t = setInterval(poll, 4000);
-    return () => clearInterval(t);
+    const t = setInterval(() => document.visibilityState === "visible" && void poll(), 3000);
+    const onVisible = () => document.visibilityState === "visible" && void poll();
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
   }, [order, poll]);
+
+  const openManual = async () => {
+    setManualOpen(true);
+    if (!order || order.manualAmountUsdc) return;
+    setManualBusy(true);
+    const res = await fetch(`/api/orders/${order.id}/manual`, { method: "POST" }).catch(() => null);
+    if (res?.ok) {
+      const next = (await res.json()) as Order;
+      setOrder((o) => (o && o.status === "pending" ? { ...o, manualAmountUsdc: next.manualAmountUsdc } : o));
+    } else setError("Couldn't prepare a manual payment. Please use a wallet app, or try again.");
+    setManualBusy(false);
+  };
 
   const price = (p: Product) => avatar.pricing[p].toFixed(2);
 
@@ -163,40 +218,71 @@ export function PaywallModal({
           {error && <p className="modal-error">{error}</p>}
           <div className="modal-actions">
             <button type="button" className="btn" onClick={start} disabled={busy || (!features.payments && !features.mockPayments)}>
-              Pay with USDC on Solana
+              {busy ? (
+                <>
+                  <span className="spinner spinner--small" /> Preparing…
+                </>
+              ) : (
+                `Pay ${price(product)} USDC`
+              )}
             </button>
             <button type="button" className="btn btn--ghost" onClick={onClose}>
               Not now
             </button>
           </div>
           {!features.payments && !features.mockPayments && <p className="modal-text modal-text--dim">Payments aren&apos;t available yet. Check back soon.</p>}
-          <p className="modal-fine">Paid in USDC on the Solana network. Payments go straight to us and can&apos;t be reversed automatically; contact us for refunds.</p>
+          <p className="modal-fine">Paid in USDC on the Solana network, from any Solana wallet or exchange. Payments can&apos;t be reversed automatically; contact us for refunds.</p>
         </>
       )}
 
       {order && order.status === "pending" && (
         <>
-          <p className="modal-text">
-            Send exactly <strong>{order.amountUsdc} USDC</strong> (Solana) with a wallet like Phantom or Solflare. Scan the code on your phone, or open it in your wallet.
-          </p>
-          <div className="qr">{qr ? <img src={qr} alt="Solana Pay QR code" width={240} height={240} /> : <span className="spinner" />}</div>
-          <div className="modal-actions">
-            <a className="btn" href={order.paymentUrl}>
-              Open in wallet
-            </a>
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => {
-                void navigator.clipboard?.writeText(order.recipient).then(() => setCopied(true));
-              }}
-            >
-              {copied ? "Address copied" : "Copy address"}
-            </button>
+          <div className="pay-amount">
+            <strong>{order.amountUsdc} USDC</strong>
+            <span>on Solana · {COPY[product].title}</span>
           </div>
-          <p className="modal-status" role="status">
-            <span className="spinner spinner--small" /> Waiting for your payment… this unlocks automatically.
+          <div className={`pay-ways ${touch ? "pay-ways--touch" : ""}`}>
+            <div className="qr">{qr ? <img src={qr} alt="Solana Pay QR code: scan it with your wallet app" width={220} height={220} /> : <span className="spinner" />}</div>
+            <a className="btn pay-open" href={order.paymentUrl}>
+              Open in wallet app
+            </a>
+          </div>
+          <p className="modal-text modal-text--dim pay-hint">
+            {touch ? "Opens Phantom, Solflare or another Solana wallet on this phone." : "Scan with Phantom, Solflare or any Solana wallet on your phone."} The amount is filled
+            in for you.
           </p>
+          <p className="modal-status" role="status" aria-live="polite">
+            <span className="spinner spinner--small" /> Waiting for your payment. This unlocks by itself within seconds.
+          </p>
+
+          {!manualOpen ? (
+            <button type="button" className="link-btn" onClick={openManual}>
+              Paying from an exchange or another app?
+            </button>
+          ) : (
+            <div className="manual">
+              {manualBusy || !order.manualAmountUsdc ? (
+                <p className="modal-status">
+                  <span className="spinner spinner--small" /> Preparing…
+                </p>
+              ) : (
+                <>
+                  <p className="modal-text">
+                    Send <strong>exactly</strong> this amount of <strong>USDC on the Solana network</strong> to this address. The exact amount is how we recognise your
+                    payment.
+                  </p>
+                  <CopyField label="Amount (USDC)" value={order.manualAmountUsdc} />
+                  <CopyField label="Address" value={order.recipient} display={`${order.recipient.slice(0, 6)}…${order.recipient.slice(-6)}`} />
+                  <p className="modal-fine">
+                    Only USDC on Solana. Other tokens or networks (Ethereum, Tron, BNB…) can&apos;t be recovered. If your exchange takes its fee from the amount, add the fee so
+                    exactly {order.manualAmountUsdc} USDC arrives.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+          {error && <p className="modal-error">{error}</p>}
+
           {features.mockPayments && (
             <button
               type="button"
@@ -209,18 +295,34 @@ export function PaywallModal({
               Simulate payment (dev only)
             </button>
           )}
-          <p className="modal-fine">Order {order.id.slice(0, 8)} · The link is valid for 30 minutes, but a payment sent later is still honoured.</p>
+          <p className="modal-fine">
+            Order {order.id.slice(0, 8)}. You can close this window: a payment that arrives later still unlocks automatically next time you visit.
+          </p>
         </>
       )}
 
       {order && order.status === "paid" && (
         <>
-          <p className="modal-text">✅ Payment received. It&apos;s unlocked!</p>
+          <div className="pay-done" role="status">
+            <svg viewBox="0 0 24 24" aria-hidden>
+              <circle cx="12" cy="12" r="10" />
+              <path d="m7.5 12.5 3 3 6-6.5" />
+            </svg>
+            <strong>Payment received</strong>
+            <span>{COPY[product].title} is unlocked. Enjoy!</span>
+          </div>
           <div className="modal-actions">
-            <button type="button" className="btn" onClick={onClose}>
+            <button type="button" className="btn btn--wide" onClick={onClose} autoFocus>
               Continue
             </button>
           </div>
+          {order.txSignature && !order.txSignature.startsWith("mock-") && (
+            <p className="modal-fine">
+              <a href={`https://solscan.io/tx/${order.txSignature}`} target="_blank" rel="noreferrer" className="link">
+                View the transaction on Solscan ↗
+              </a>
+            </p>
+          )}
         </>
       )}
     </Modal>

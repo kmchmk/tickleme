@@ -817,9 +817,40 @@ a.card:active {
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
 }
 
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
 .modal-title {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 20px;
+}
+
+.modal-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin: -6px -8px 0 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.modal-close svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  fill: none;
 }
 
 .modal-text {
@@ -928,6 +959,158 @@ a.card:active {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ---------- Payment ---------- */
+
+.pay-amount {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin: 4px 0 10px;
+  text-align: center;
+}
+
+.pay-amount strong {
+  font-size: 30px;
+  letter-spacing: -0.02em;
+}
+
+.pay-amount span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pay-ways {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.pay-ways .qr {
+  min-height: 220px;
+  margin: 0;
+}
+
+/* On a phone the wallet is on the same device: the button comes first, the code is secondary. */
+.pay-ways--touch .pay-open {
+  order: -1;
+}
+
+.pay-ways--touch .qr {
+  min-height: 0;
+}
+
+.pay-ways--touch .qr img {
+  width: 150px;
+  height: 150px;
+}
+
+.pay-open {
+  justify-content: center;
+  width: 100%;
+}
+
+.pay-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  text-align: center;
+}
+
+.link-btn {
+  display: block;
+  margin: 6px auto 0;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--accent-2);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.link {
+  color: var(--accent-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.manual {
+  margin-top: 10px;
+  padding: 14px 12px 4px;
+  border-radius: 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+}
+
+.copy-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "label btn" "value btn";
+  align-items: center;
+  column-gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.copy-label {
+  grid-area: label;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.copy-value {
+  grid-area: value;
+  font-size: 16px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.copy-field .btn {
+  grid-area: btn;
+}
+
+.pay-done {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 8px 0 4px;
+  text-align: center;
+}
+
+.pay-done svg {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 6px;
+  fill: none;
+  stroke: #6ee7a8;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: pop 0.35s ease-out;
+}
+
+.pay-done strong {
+  font-size: 19px;
+}
+
+.pay-done span {
+  color: var(--muted);
+}
+
+.btn--wide {
+  flex: 1;
+  justify-content: center;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
   }
 }
 
