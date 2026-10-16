@@ -2,18 +2,24 @@ import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ViewerProvider } from "@/components/viewer";
 import { AUTH_ENABLED } from "@/lib/config-public";
+import { DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Tickle Me",
-  description: "Interactive avatars you can touch. Tap a nose, poke a belly, tickle an ear.",
-  applicationName: "Tickle Me",
-  appleWebApp: { capable: true, title: "Tickle Me", statusBarStyle: "black-translucent" },
-  openGraph: {
-    title: "Tickle Me",
-    description: "Interactive avatars you can touch.",
-    type: "website",
-  },
+  metadataBase: new URL(SITE_URL),
+  title: { default: `${SITE_NAME}: ${TAGLINE}`, template: `%s · ${SITE_NAME}` },
+  description: DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: ["interactive avatar", "tap game", "tickle", "touch reactions", "interactive video", "Solana"],
+  alternates: { canonical: "/" },
+  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false },
+  openGraph: { type: "website", siteName: SITE_NAME, title: `${SITE_NAME}: ${TAGLINE}`, description: DESCRIPTION, url: "/", locale: "en_US" },
+  twitter: { card: "summary_large_image", title: `${SITE_NAME}: ${TAGLINE}`, description: DESCRIPTION },
+  robots: { index: true, follow: true },
+  // Some outfits are adult-only (behind sign-in + 18+ confirmation); say so, as search engines ask.
+  other: { rating: "adult" },
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } } : {}),
 };
 
 export const viewport: Viewport = {

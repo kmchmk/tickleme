@@ -36,8 +36,37 @@ Access rules live in `lib/access.ts` (pure, unit-tested). The server never sends
 | `SOLANA_RPC_URL` | optional but recommended (e.g. a free Helius key); defaults to the public RPC, which rate-limits |
 | `USDC_MINT` | optional, defaults to mainnet USDC |
 | `PAYMENTS_MOCK=1` | local development only: adds a fake "pay" button. Ignored in production |
+| `ALLOWED_ADMIN_EMAILS` | comma-separated emails that may open `/admin` |
+| `NEXT_PUBLIC_SITE_URL` | the public address, e.g. `https://tickleme.app` (canonical links, sitemap, link previews). Falls back to Vercel's production URL |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | optional: the code from Google Search Console's "HTML tag" method |
 
 Local development without any keys: `npm run dev` uses an in-memory database (pglite) and a fake sign-in (`/api/dev/login?u=name`).
+
+## Payments
+Buyers pay USDC on Solana. A payment counts once the network has **confirmed** it (about a second).
+- **Wallet apps (Solana Pay):** the QR code / "Open in wallet app" link carries a unique reference key per order; the
+  server finds the transaction by it and checks that the recipient's USDC balance went up by at least the price.
+- **Exchanges / plain transfers:** "Paying from an exchange or another app?" gives the order a unique *exact* amount
+  (price + a few millionths). Transfers into the recipient's USDC account with that exact amount are matched to it.
+- Late payments are still honoured: pending orders of the last 24 h are re-checked whenever the buyer comes back.
+- `/admin` → Overview → **Setup** checks the wallet, its USDC account and the RPC live.
+
+Setup: set `SOLANA_RECIPIENT` to your wallet's public address and `SOLANA_RPC_URL` to a dedicated RPC (Helius free
+tier: `https://mainnet.helius-rpc.com/?api-key=…`). The public endpoint works but rate-limits.
+
+## Custom domain and SEO
+1. Vercel → Project → Settings → Domains: add the domain and set it as the primary one; let `tickleme.vercel.app`
+   redirect to it (308).
+2. Set `NEXT_PUBLIC_SITE_URL=https://<domain>` and redeploy.
+3. Clerk → Domains: switch the production instance to the new domain (add the DNS records Clerk lists); the
+   `/__clerk` proxy is only needed while on `vercel.app`. Update allowed redirect URLs.
+4. Google Search Console: add the domain, verify (DNS, or `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`), submit
+   `https://<domain>/sitemap.xml`.
+
+Built in: per-page titles/descriptions, canonical URLs (outfit `?v=` links fold into the avatar page), Open Graph and
+Twitter cards (generated home image, poster per avatar), `sitemap.xml`, `robots.txt` (admin/api/join excluded,
+previews not indexed), JSON-LD (WebSite, ItemList, FAQPage) with a visible FAQ, and `rating: adult` because some
+outfits are adult-only.
 
 ## Tests
 `npm test` (access rules, payment verification). The end-to-end checks used during development ran against `next dev`.
