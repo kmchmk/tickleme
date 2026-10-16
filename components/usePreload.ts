@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getClip } from "@/lib/videoCache";
 import type { AvatarBundle, TransitionSet } from "@/lib/types";
 
@@ -23,42 +23,81 @@ export function bundleFiles(bundle: AvatarBundle): File[] {
   return [...files.values()];
 }
 
+/** A bundle together with an in-memory (blob) URL for every one of its files. */
+export interface Snapshot {
+  bundle: AvatarBundle;
+  urls: Record<string, string>;
+}
+
 /**
- * Downloads (or reads from the IndexedDB cache) every file up front and hands back blob URLs by stable key.
- * Nothing after this waits on the network, which is what makes outfit switches instant.
+ * Downloads (or reads from the IndexedDB cache) every file up front and hands back blob URLs by stable key, so
+ * nothing after this waits on the network. When the bundle changes (sign-in, purchase, admin grant) the previous
+ * snapshot stays usable until the new one is complete; files both share are reused, not fetched again.
  */
 export function usePreload(bundle: AvatarBundle | null) {
-  const [state, setState] = useState<{ urls: Record<string, string> | null; progress: number; failed: boolean }>({ urls: null, progress: 0, failed: false });
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const cache = useRef(new Map<string, { url: string; version: number }>());
 
   useEffect(() => {
     if (!bundle) return;
     let cancelled = false;
-    const created: string[] = [];
     const files = bundleFiles(bundle);
-    const out: Record<string, string> = {};
+    const todo = files.filter((f) => cache.current.get(f.key)?.version !== f.version);
     let next = 0;
     let done = 0;
-    setState({ urls: null, progress: 0, failed: false });
+    setLoading(true);
+    setFailed(false);
+    setProgress(todo.length ? 0 : 1);
     const worker = async () => {
-      while (!cancelled && next < files.length) {
-        const f = files[next++];
+      while (!cancelled && next < todo.length) {
+        const f = todo[next++];
         const blob = await getClip(f.key, f.url, f.version);
-        const u = URL.createObjectURL(blob);
-        created.push(u);
-        out[f.key] = u;
-        if (!cancelled) setState((s) => ({ ...s, progress: ++done / files.length }));
+        if (cancelled) return;
+        const old = cache.current.get(f.key);
+        cache.current.set(f.key, { url: URL.createObjectURL(blob), version: f.version });
+        if (old) setTimeout(() => URL.revokeObjectURL(old.url), 10_000); // an element may still be showing it
+        setProgress(++done / todo.length);
       }
     };
     Promise.all(Array.from({ length: 6 }, worker))
-      .then(() => !cancelled && setState({ urls: out, progress: 1, failed: false }))
-      .catch(() => !cancelled && setState({ urls: null, progress: 0, failed: true }));
+      .then(() => {
+        if (cancelled) return;
+        const keep = new Set(files.map((f) => f.key));
+        const urls: Record<string, string> = {};
+        for (const [k, v] of cache.current) {
+          if (keep.has(k)) urls[k] = v.url;
+          else {
+            cache.current.delete(k);
+            const u = v.url;
+            setTimeout(() => URL.revokeObjectURL(u), 10_000); // let the stage move off it first
+          }
+        }
+        setSnapshot({ bundle, urls });
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setFailed(true);
+        setLoading(false);
+      });
     return () => {
       cancelled = true;
-      created.forEach(URL.revokeObjectURL);
     };
   }, [bundle, attempt]);
 
+  // Free everything when the page goes away.
+  useEffect(() => {
+    const c = cache.current;
+    return () => {
+      for (const v of c.values()) URL.revokeObjectURL(v.url);
+      c.clear();
+    };
+  }, []);
+
   const retry = useCallback(() => setAttempt((a) => a + 1), []);
-  return { ...state, retry };
+  return { snapshot, loading, progress, failed, retry };
 }
