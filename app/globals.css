@@ -2614,3 +2614,16 @@ a.card:active {
   font-weight: 800;
   cursor: pointer;
 }
+
+/* Clerk's sign-in / sign-up / invitation pages */
+.join {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: calc(24px + var(--safe-t)) 16px calc(24px + var(--safe-b));
+}
+
+.join .cl-rootBox,
+.join .cl-cardBox {
+  max-width: 100%;
+}
