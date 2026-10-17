@@ -37,7 +37,7 @@ Access rules live in `lib/access.ts` (pure, unit-tested). The server never sends
 | `USDC_MINT` | optional, defaults to mainnet USDC |
 | `PAYMENTS_MOCK=1` | local development only: adds a fake "pay" button. Ignored in production |
 | `ALLOWED_ADMIN_EMAILS` | comma-separated emails that may open `/admin` |
-| `NEXT_PUBLIC_SITE_URL` | the public address, e.g. `https://tickleme.app` (canonical links, sitemap, link previews). Falls back to Vercel's production URL |
+| `NEXT_PUBLIC_SITE_URL` | the public address, currently `https://www.tickleme.baby` (canonical links, sitemap, link previews). Falls back to Vercel's production URL |
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | optional: the code from Google Search Console's "HTML tag" method |
 
 Local development without any keys: `npm run dev` uses an in-memory database (pglite) and a fake sign-in (`/api/dev/login?u=name`).
