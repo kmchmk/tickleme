@@ -39,5 +39,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
   // Clerk (email-link sign-in) wraps the app only when it is configured.
-  return AUTH_ENABLED ? <ClerkProvider>{body}</ClerkProvider> : body;
+  // Its links stay on this site (not Clerk's hosted accounts pages).
+  return AUTH_ENABLED ? (
+    <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up" signInFallbackRedirectUrl="/" signUpFallbackRedirectUrl="/" afterSignOutUrl="/">
+      {body}
+    </ClerkProvider>
+  ) : (
+    body
+  );
 }
