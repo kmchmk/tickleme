@@ -37,9 +37,9 @@ export function SignInModal({ onClose, why }: { onClose?: () => void; why: strin
   return (
     <Modal title="Sign in to continue" onClose={onClose}>
       <p className="modal-text">{why}</p>
-      <p className="modal-text modal-text--dim">We email you a one-time code. No password needed.</p>
+      <p className="modal-text modal-text--dim">Enter your email and we send you a one-time code. No password, and no separate sign-up: new here? The same step creates your account.</p>
       <div className="modal-actions">
-        <SignInTrigger>Sign in with email</SignInTrigger>
+        <SignInTrigger>Continue with email</SignInTrigger>
         <Link href="/" className="btn btn--ghost">
           Back
         </Link>

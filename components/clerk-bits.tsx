@@ -14,10 +14,20 @@ export function ClerkWatcher({ onChange }: { onChange: (signedIn: boolean) => vo
   return null;
 }
 
-/** Renders `children` as the sign-in trigger once Clerk has loaded; until then (or if it never loads) a disabled stand-in. */
+/**
+ * Renders `children` as the sign-in trigger once Clerk has loaded; until then (or if it never loads) a disabled stand-in.
+ * `withSignUp` makes it one flow for everyone: an email without an account continues straight into creating one
+ * (same emailed code), instead of stopping at "Couldn't find your account".
+ */
 export function ClerkSignIn({ children, fallback }: { children: React.ReactNode; fallback: React.ReactNode }) {
   const { loaded } = useClerk();
-  return loaded ? <SignInButton mode="modal">{children}</SignInButton> : <>{fallback}</>;
+  return loaded ? (
+    <SignInButton mode="modal" withSignUp>
+      {children}
+    </SignInButton>
+  ) : (
+    <>{fallback}</>
+  );
 }
 
 export function ClerkAccount() {
