@@ -51,7 +51,7 @@ Buyers pay USDC on Solana. A payment counts once the network has **confirmed** i
 - Late payments are still honoured: pending orders of the last 24 h are re-checked whenever the buyer comes back.
 - `/admin` → Overview → **Setup** checks the wallet, its USDC account and the RPC live.
 
-Setup: set `SOLANA_RECIPIENT` to your wallet's public address and `SOLANA_RPC_URL` to a dedicated RPC (Helius free
+Setup: set `SOLANA_RECIPIENT` to your wallet's public address (production: a Binance Web3 Wallet Solana address) and `SOLANA_RPC_URL` to a dedicated RPC (Helius free
 tier: `https://mainnet.helius-rpc.com/?api-key=…`). The public endpoint works but rate-limits.
 
 ## Custom domain and SEO
