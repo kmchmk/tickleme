@@ -83,9 +83,9 @@ export default function AvatarCard({ avatar }: { avatar: AvatarSummary }) {
 
   return (
     <div className="card card--avatar">
-      <Link href={`/a/${avatar.id}?v=${selected}`} className="card-link" aria-label={`Open ${avatar.name}, ${labelOf(avatar, selected)}`}>
+      <Link href={`/a/${avatar.id}?v=${selected}`} className="card-link" aria-label={`Play with ${avatar.name}, ${labelOf(avatar, selected)}`}>
         <div ref={media} className={`card-media ${open || busy ? "" : "card-media--locked"}`} style={{ "--ar": v.aspectRatio } as React.CSSProperties}>
-          <Stage ref={stage} initialPoster={avatar.variants.jeans.poster} alt={`${avatar.name}, an interactive avatar you can tap`} />
+          <Stage ref={stage} initialPoster={avatar.variants.jeans.poster} alt={`${avatar.name}, an interactive tickle avatar you can tap`} />
           {!open && !busy && (
             <span className="lock-badge" aria-hidden>
               <svg viewBox="0 0 24 24">
@@ -121,7 +121,8 @@ export default function AvatarCard({ avatar }: { avatar: AvatarSummary }) {
         })}
       </div>
       <div className="card-body">
-        <strong>{avatar.name}</strong>
+        <h3 className="card-name">{avatar.name}</h3>
+        {avatar.tagline && <p className="card-tagline">{avatar.tagline}</p>}
         <span>{caption}</span>
       </div>
     </div>

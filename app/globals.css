@@ -200,8 +200,18 @@ a.card:active {
   padding: 12px 14px 14px;
 }
 
-.card-body strong {
+.card-body strong,
+.card-name {
+  margin: 0;
   font-size: 16px;
+}
+
+.card-tagline {
+  margin: 0 0 2px;
+  color: var(--text);
+  opacity: 0.85;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .card-body span {
@@ -366,6 +376,65 @@ a.card:active {
   align-items: center;
   gap: 8px;
   padding: 10px 12px 6px;
+}
+
+.screen-heading {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+}
+
+.screen-about {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 1px 4px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.screen-about svg {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.screen-about,
+.screen-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.about-back[hidden] {
+  display: none;
+}
+
+.about-tagline {
+  margin: -4px 0 10px;
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.about-h {
+  margin: 14px 0 6px;
+  font-size: 15px;
+}
+
+.about-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .screen-title {
@@ -2626,4 +2695,50 @@ a.card:active {
 .join .cl-rootBox,
 .join .cl-cardBox {
   max-width: 100%;
+}
+
+/* ---------- Home: introduction ---------- */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.intro {
+  width: min(100%, 720px);
+  margin: 40px auto 0;
+}
+
+.intro p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.intro-cast {
+  display: grid;
+  gap: 6px;
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  list-style: none;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.intro-cast a {
+  color: var(--text);
+}
+
+.intro-cast a:hover strong {
+  color: var(--accent);
 }

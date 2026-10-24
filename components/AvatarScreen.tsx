@@ -51,6 +51,13 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
   const [queued, setQueued] = useState<VariantKey | null>(null);
   const [modal, setModal] = useState<Modal>(null);
   const [hints, setHints] = useState(false);
+  const [about, setAbout] = useState(false);
+  useEffect(() => {
+    if (!about) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setAbout(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [about]);
   const [firstVisit, setFirstVisit] = useState(false);
 
   const stage = useRef<StageHandle>(null);
@@ -199,7 +206,18 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
             <path d="M15 5l-7 7 7 7" />
           </svg>
         </Link>
-        <h1 className="screen-title">{avatar.name}</h1>
+        <div className="screen-heading">
+          <h1 className="screen-title">{avatar.name}</h1>
+          {avatar.bio && (
+            <button type="button" className="screen-about" onClick={() => setAbout(true)} aria-haspopup="dialog">
+              {avatar.tagline}
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 11v5M12 8h.01" />
+              </svg>
+            </button>
+          )}
+        </div>
         <div className="screen-actions">
           <AccountArea />
         </div>
@@ -314,6 +332,36 @@ export default function AvatarScreen({ avatar, initialVariant, debug }: { avatar
           </>
         )}
       </div>
+
+      {avatar.bio && (
+        <div className="modal-backdrop about-back" hidden={!about} onClick={() => setAbout(false)}>
+          <section className="modal about" role="dialog" aria-modal="true" aria-labelledby="about-title" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <h2 id="about-title" className="modal-title">
+                About {avatar.name}
+              </h2>
+              <button type="button" className="modal-close" onClick={() => setAbout(false)} aria-label="Close">
+                <svg viewBox="0 0 24 24" aria-hidden>
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </div>
+            <p className="about-tagline">{avatar.tagline}</p>
+            <p className="modal-text">{avatar.bio}</p>
+            <h3 className="about-h">How to play</h3>
+            <ul className="about-list">
+              <li>Tap anywhere on {avatar.name}: every touch spot has its own reaction.</li>
+              <li>Not sure where to tap? &ldquo;Show touch spots&rdquo; outlines them all.</li>
+              <li>Switch outfits with the buttons at the top.</li>
+            </ul>
+            <div className="modal-actions">
+              <button type="button" className="btn btn--wide" onClick={() => setAbout(false)}>
+                Play with {avatar.name}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* Gate dialogs only open on request (padlock / button): sign in -> confirm age -> unlock, each continuing on its own. */}
       {gate && modal?.type === "gate" && (
