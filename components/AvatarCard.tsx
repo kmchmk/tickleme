@@ -83,7 +83,7 @@ export default function AvatarCard({ avatar }: { avatar: AvatarSummary }) {
 
   return (
     <div className="card card--avatar">
-      <Link href={`/a/${avatar.id}?v=${selected}`} className="card-link" aria-label={`Play with ${avatar.name}, ${labelOf(avatar, selected)}`}>
+      <Link href={selected === "jeans" ? `/a/${avatar.id}` : `/a/${avatar.id}?v=${selected}`} className="card-link" aria-label={`Play with ${avatar.name}, ${labelOf(avatar, selected)}`}>
         <div ref={media} className={`card-media ${open || busy ? "" : "card-media--locked"}`} style={{ "--ar": v.aspectRatio } as React.CSSProperties}>
           <Stage ref={stage} initialPoster={avatar.variants.jeans.poster} alt={`${avatar.name}, an interactive tickle avatar you can tap`} />
           {!open && !busy && (
